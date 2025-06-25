@@ -1,8 +1,1 @@
-# Error-404-ESummit-2024
-
-postman-url-https://error-404-esummit-2024.onrender.com/chat
-
-raw body
-{
-  "question": " "
-}
+ConstituteGPT was developed as part of the Hack n Pitch hackathon by Team Error 404. This project aimed to leverage the power of generative AI to simplify understanding and interaction with constitutional and legal texts.
