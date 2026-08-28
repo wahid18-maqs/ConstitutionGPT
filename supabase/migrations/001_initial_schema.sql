@@ -1,0 +1,1 @@
+-- Initial Supabase schema placeholder for ConstituteAI.

@@ -1,0 +1,1 @@
+-- Development seed data placeholder for ConstituteAI.

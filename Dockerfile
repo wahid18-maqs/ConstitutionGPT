@@ -16,9 +16,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the entire project directory to the container
 COPY . /app/
 
-# Ensure the FAISS index file is included
-COPY faiss_index_law /app/faiss_index_law
-
 # Expose the port FastAPI will run on
 EXPOSE 8000
 

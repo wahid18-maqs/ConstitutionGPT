@@ -6,7 +6,7 @@ ConstituteAI GPT is an AI-powered chatbot designed to provide accurate, simplifi
 ## Features
 - **Constitutional Data Retrieval**: Efficient querying of articles, amendments, and case laws with simplified explanations of complex legal texts.
 - **Custom Responses**: Personalized responses using advanced AI models like Google Generative AI (Gemini), with context-aware explanations tailored to user needs.
-- **Advanced Search Engine**: Uses HuggingFace models for embedding legal texts into vectors and FAISS for fast, scalable vector storage and retrieval.
+- **Advanced Search Engine**: Uses Pinecone integrated embeddings for fast, metadata-aware legal text retrieval.
 - **Natural Language Processing**: Understands user intent and context for better query handling and simplifies legal concepts for non-legal audiences.
 - **Multifaceted Use Cases**:
   - Assists **citizens** in understanding their rights.
@@ -18,8 +18,7 @@ ConstituteAI GPT is an AI-powered chatbot designed to provide accurate, simplifi
 |---------------------|-------------------------------------------------|
 | LangChain            | Manages prompt handling and interaction flows  |
 | Google Generative AI  | Generates context-aware and simplified responses |
-| HuggingFace          | Embeds constitutional text into vectors        |
-| FAISS                | Enables efficient vector storage and retrieval |
+| Pinecone             | Provides integrated embeddings and retrieval  |
 | pypdf                | Extracts content from legal PDF documents      |
 | re                   | Performs text pattern matching during preprocessing |
 | FastAPI              | Serves machine learning models through APIs    |
@@ -32,7 +31,7 @@ ConstituteAI GPT is an AI-powered chatbot designed to provide accurate, simplifi
 
 ### Prerequisites
 - Python 3.8+
-- FAISS-cpu(Vector Database)
+- Pinecone index with integrated embeddings
 - Virtual environment tool (optional but recommended)
 
 ### Backend Setup (ml-model branch)
@@ -50,11 +49,11 @@ ConstituteAI GPT is an AI-powered chatbot designed to provide accurate, simplifi
 
 ## How It Works
 - Spearheaded development of a **97% accurate chatbot** for Indian Constitution consultations.
-- Built a **Retrieval-Augmented Generation (RAG) pipeline** to optimize model performance by storing vectorized data in FAISS using the all-MiniLM-L6-v2 embedding model via Hugging Face Inference API.
-- Leveraged **Gemini 1.5 Flash LLM** for fast, context-aware conversational chatbot responses.
+- Built a **Retrieval-Augmented Generation (RAG) pipeline** using Pinecone integrated embeddings and metadata-aware retrieval.
+- Leveraged **Gemini 2.5 Flash LLM** for fast, context-aware conversational chatbot responses.
 - Utilized **FastAPI and React.js** for interaction and query submission, with **Docker** ensuring deployment scalability.
 - **Data Collection**: Extracts legal text from PDFs and organizes it into structured formats.
-- **Embedding and Storage**: Converts text into vector embeddings using HuggingFace models and stores embeddings in FAISS for fast querying.
+- **Embedding and Storage**: Sends source text to Pinecone for server-side embedding and fast querying.
 - **User Interaction**: Handles user queries via frontend app and queries the FastAPI backend for relevant legal information.
 - **Response Generation**: Retrieves relevant legal articles and explanations, simplifying responses using Google Generative AI.
 
@@ -67,3 +66,13 @@ ConstituteAI GPT is an AI-powered chatbot designed to provide accurate, simplifi
 - **Law Enforcement**: Obtain quick legal references for enforcement purposes.
 
 ---
+
+## ConstituteAI Scaffold
+
+The repository now includes an additive target structure for the ConstituteAI
+refactor described in `instructions_refactor.md`. Backend route, graph, RAG,
+service, and model modules are placeholders only; frontend, Supabase, data,
+script, and test directories are scaffolded for incremental implementation.
+
+Existing ConstitutionGPT prototype files and generated artifacts remain in
+place until the refactor begins.

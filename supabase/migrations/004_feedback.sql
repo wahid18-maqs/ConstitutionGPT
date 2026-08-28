@@ -1,0 +1,1 @@
+-- Feedback schema placeholder for ConstituteAI.
