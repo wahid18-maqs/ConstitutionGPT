@@ -21,9 +21,13 @@ def _citations(response):
 		metadata = hit.get("fields", hit.get("metadata", {}))
 		article = metadata.get("article")
 		source_id = metadata.get("source_id")
-		if article:
+		label = metadata.get("label")
+		if metadata.get("document_type") == "case_law":
+			source_id = metadata.get("case_id") or source_id
+			label = metadata.get("case_name") or label
+		elif article:
 			source_id = f"article_{article}"
-		label = metadata.get("label") or (f"Article {article}" if article else None)
+			label = label or f"Article {article}"
 		if source_id and source_id not in seen:
 			citations.append(Citation(source_id=str(source_id), label=str(label or source_id)))
 			seen.add(source_id)

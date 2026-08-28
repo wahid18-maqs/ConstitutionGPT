@@ -2,16 +2,39 @@
 
 import argparse
 import json
+import time
 from pathlib import Path
 
+from backend.config import PINECONE_NAMESPACE
 from backend.services.pinecone import PineconeService
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CHUNKS_DIR = PROJECT_ROOT / "data" / "processed" / "chunks"
 METADATA_DIR = PROJECT_ROOT / "data" / "processed" / "metadata"
-DEFAULT_NAMESPACE = "constitution"
+# Must match backend.config.PINECONE_NAMESPACE — that's the namespace
+# PineconeRetriever actually queries at request time. A hardcoded default
+# here that drifts from config silently indexes into a namespace retrieval
+# never reads from.
+DEFAULT_NAMESPACE = PINECONE_NAMESPACE
 UPSERT_BATCH_SIZE = 96
+BATCH_DELAY_SECONDS = 3.0
+MAX_RETRIES = 5
+
+
+def _upsert_with_retry(service, batch, namespace):
+	"""Upsert one batch, backing off on the integrated-embedder's rate limit."""
+	from pinecone.openapi_support.exceptions import PineconeApiException
+
+	for attempt in range(MAX_RETRIES):
+		try:
+			return service.upsert_records(batch, namespace=namespace)
+		except PineconeApiException as exc:
+			if exc.status != 429 or attempt == MAX_RETRIES - 1:
+				raise
+			wait = 20 * (attempt + 1)
+			print(f"  rate limited, retrying in {wait}s (attempt {attempt + 1}/{MAX_RETRIES})")
+			time.sleep(wait)
 
 
 def _metadata_path(chunk_path: Path) -> Path:
@@ -62,8 +85,13 @@ def index_chunks(dry_run: bool = False, namespace: str = DEFAULT_NAMESPACE) -> i
 		relative_source = str(chunk_path.relative_to(CHUNKS_DIR).with_suffix(""))
 		records = _build_records(_load_records(chunk_path), relative_source)
 		if service:
-			for start in range(0, len(records), UPSERT_BATCH_SIZE):
-				service.upsert_records(records[start:start + UPSERT_BATCH_SIZE], namespace=namespace)
+			batches = range(0, len(records), UPSERT_BATCH_SIZE)
+			for batch_index, start in enumerate(batches):
+				_upsert_with_retry(
+					service, records[start:start + UPSERT_BATCH_SIZE], namespace
+				)
+				print(f"  upserted batch {batch_index + 1} ({min(start + UPSERT_BATCH_SIZE, len(records))}/{len(records)})")
+				time.sleep(BATCH_DELAY_SECONDS)
 		total += len(records)
 		print(f"Prepared {len(records)} records from {chunk_path}")
 	print(f"{'Dry run prepared' if dry_run else 'Upserted'} {total} records")

@@ -34,9 +34,15 @@ class LocalMetadataService:
 			for line in path.read_text(encoding="utf-8").splitlines():
 				metadata = json.loads(line)
 				article = metadata.get("article")
+				case_id = metadata.get("case_id")
 				if article:
 					self.records.append({
 						"id": f"article_{article}:chunk_{metadata['chunk_id']}",
+						"metadata": metadata,
+					})
+				elif case_id:
+					self.records.append({
+						"id": f"{case_id}:chunk_{metadata['chunk_id']}",
 						"metadata": metadata,
 					})
 
@@ -114,7 +120,7 @@ def run_grouped_benchmark(
 	retriever: PineconeRetriever, questions: list[dict], top_k: int
 ) -> None:
 	"""Run and report metrics separately for each labeled question group."""
-	for category in ("explicit-article", "conceptual"):
+	for category in ("explicit-article", "conceptual", "case-law"):
 		group = [item for item in questions if item["category"] == category]
 		recall, precision, latency, rerank_latency = run_benchmark(retriever, group, top_k)
 		print(f"{category} questions: {len(group)}")
