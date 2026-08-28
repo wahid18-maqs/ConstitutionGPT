@@ -1,6 +1,7 @@
 """Pydantic models for the ConstituteAI chat contract."""
 
-from typing import Literal
+from datetime import datetime
+from typing import Literal, Optional
 from pydantic import BaseModel, Field
 
 
@@ -25,3 +26,28 @@ class ChatResponse(BaseModel):
 	message_id: str
 	answer: str
 	citations: list[Citation] = Field(default_factory=list)
+
+
+class HistoryMessage(BaseModel):
+	id: str
+	role: Literal["user", "assistant"]
+	content: str
+	created_at: Optional[datetime] = None
+
+
+class HistoryResponse(BaseModel):
+	conversation_id: str
+	messages: list[HistoryMessage] = Field(default_factory=list)
+
+
+class ShareRequest(BaseModel):
+	conversation_id: str = Field(..., min_length=1)
+
+
+class ShareResponse(BaseModel):
+	share_id: str
+
+
+class SharedConversationResponse(BaseModel):
+	conversation_id: str
+	messages: list[HistoryMessage] = Field(default_factory=list)

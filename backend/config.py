@@ -11,13 +11,16 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "constituteai")
-PINECONE_NAMESPACE = os.getenv("PINECONE_NAMESPACE", "constitution-v2")
+PINECONE_NAMESPACE = os.getenv("PINECONE_NAMESPACE", "constitution-v3")
 PINECONE_CLOUD = os.getenv("PINECONE_CLOUD", "aws")
 PINECONE_REGION = os.getenv("PINECONE_REGION", "us-east-1")
 RERANK_ENABLED = os.getenv("RERANK_ENABLED", "false").lower() == "true"
 EMBEDDING_MODEL = os.getenv(
 	"EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-l6-v2"
 )
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
 ALLOWED_ORIGINS = tuple(
 	origin.strip()
 	for origin in os.getenv(

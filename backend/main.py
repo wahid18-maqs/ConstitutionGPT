@@ -9,7 +9,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from backend.api.routes.auth import router as auth_router
 from backend.api.routes.chat import router as chat_router
+from backend.api.routes.feedback import router as feedback_router
+from backend.api.routes.share import router as share_router
 from backend.config import ALLOWED_ORIGINS
 
 
@@ -46,7 +49,10 @@ app.add_middleware(
 	allow_methods=["*"],
 	allow_headers=["*"],
 )
+app.include_router(auth_router)
 app.include_router(chat_router)
+app.include_router(feedback_router)
+app.include_router(share_router)
 
 
 @app.exception_handler(RequestValidationError)
