@@ -33,7 +33,7 @@ class PineconeChatService:
     def process(self, question: str, chat_history: list[Any]) -> dict:
         """Return generated answer plus the raw Pinecone hits used as context."""
         search_result = self.retriever.retrieve(question)
-        hits = _hits(search_result)
+        hits = hits_from_response(search_result)
         context = "\n\n".join(
             hit.get("fields", {}).get("text", "") for hit in hits
         )
@@ -52,7 +52,7 @@ def append_exchange(chat_history: list[Any], question: str, answer: str) -> None
     chat_history.append(AIMessage(content=answer))
 
 
-def _hits(response: Any) -> list[dict]:
+def hits_from_response(response: Any) -> list[dict]:
     """Normalize Pinecone SDK and dictionary search responses to hit dictionaries."""
     if isinstance(response, dict):
         return response.get("result", {}).get("hits", response.get("matches", []))

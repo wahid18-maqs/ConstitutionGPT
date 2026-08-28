@@ -5,48 +5,23 @@ from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException, Request
 
+from backend.graph.workflow import run as run_chat_graph
 from backend.models.chat import ChatRequest, ChatResponse, Citation
-from backend.services.pinecone_chat import PineconeChatService, append_exchange
 
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
-pinecone_chat_service = None
-
-
-def _citations(response):
-	citations = []
-	seen = set()
-	for hit in response.get("context", []):
-		metadata = hit.get("fields", hit.get("metadata", {}))
-		article = metadata.get("article")
-		source_id = metadata.get("source_id")
-		label = metadata.get("label")
-		if metadata.get("document_type") == "case_law":
-			source_id = metadata.get("case_id") or source_id
-			label = metadata.get("case_name") or label
-		elif article:
-			source_id = f"article_{article}"
-			label = label or f"Article {article}"
-		if source_id and source_id not in seen:
-			citations.append(Citation(source_id=str(source_id), label=str(label or source_id)))
-			seen.add(source_id)
-	return citations
 
 
 @router.post("/api/chat", response_model=ChatResponse)
 def chat(request: Request, payload: ChatRequest):
-	global pinecone_chat_service
 	try:
 		histories = request.app.state.conversation_histories
 		history = histories.setdefault(payload.conversation_id, [])
-		if pinecone_chat_service is None:
-			pinecone_chat_service = PineconeChatService()
-		response = pinecone_chat_service.process(payload.message, history)
-		answer = response.get("answer")
+		result = run_chat_graph(payload.message, payload.language, history)
+		answer = result.get("answer")
 		if not isinstance(answer, str) or not answer:
 			raise RuntimeError("chat service returned no answer")
-		append_exchange(history, payload.message, answer)
 		logger.info(
 			"chat request completed",
 			extra={
@@ -54,13 +29,13 @@ def chat(request: Request, payload: ChatRequest):
 					"path": "/api/chat",
 					"conversation_id": payload.conversation_id,
 					"language": payload.language,
+					"intent": result.get("intent"),
 					"status_code": 200,
 				}
 			},
 		)
-		return ChatResponse(
-			message_id=uuid4(), answer=answer, citations=_citations(response)
-		)
+		citations = [Citation(**citation) for citation in result.get("citations", [])]
+		return ChatResponse(message_id=str(uuid4()), answer=answer, citations=citations)
 	except Exception as exc:
 		logger.exception(
 			"chat request failed",

@@ -52,11 +52,22 @@ class PineconeRetriever:
 		self.last_retrieval_latency_ms = 0.0
 		self.last_rerank_latency_ms = 0.0
 
-	def retrieve(self, query: str) -> Any:
-		"""Return semantic matches constrained by explicit query metadata."""
+	def retrieve(self, query: str, metadata_filter_override: Optional[dict] = None) -> Any:
+		"""Return semantic matches constrained by explicit or derived metadata.
+
+		`metadata_filter_override` lets a caller (e.g. the LangGraph retrieval
+		node, which has already combined intent-based and regex-derived
+		filters) supply the filter directly instead of having it re-derived
+		from the raw query text. `None` preserves the original behavior of
+		deriving the filter here via `extract_metadata_filter`. Pass `{}`
+		explicitly to force an unfiltered search.
+		"""
 		if not query.strip():
 			raise ValueError("query must not be empty")
-		metadata_filter = extract_metadata_filter(query) or None
+		if metadata_filter_override is not None:
+			metadata_filter = metadata_filter_override or None
+		else:
+			metadata_filter = extract_metadata_filter(query) or None
 		started = time.perf_counter()
 		if self.reranker:
 			response = self.reranker.retrieve(
