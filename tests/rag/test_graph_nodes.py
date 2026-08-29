@@ -71,10 +71,12 @@ class MetadataBuilderTests(unittest.TestCase):
 
 
 class RetrievalNodeTests(unittest.TestCase):
-	def test_retrieve_passes_filter_and_builds_labeled_context(self):
+	def test_document_type_filter_runs_a_single_search(self):
 		class FakeRetriever:
+			top_k = 10
+
 			def retrieve(self, query, metadata_filter_override=None):
-				self.called_with = (query, metadata_filter_override)
+				self.calls = getattr(self, "calls", []) + [(query, metadata_filter_override)]
 				return {
 					"matches": [
 						{"fields": {"text": "hit one", "article": "21", "document_type": "constitution"}},
@@ -83,13 +85,51 @@ class RetrievalNodeTests(unittest.TestCase):
 				}
 
 		retriever = FakeRetriever()
-		state = retrieve({"query": "What is Article 21?", "metadata_filter": {"article": {"$eq": "21"}}}, retriever=retriever)
-		self.assertEqual(retriever.called_with, ("What is Article 21?", {"article": {"$eq": "21"}}))
+		state = retrieve(
+			{"query": "What is Article 21?", "metadata_filter": {"article": {"$eq": "21"}, "document_type": {"$eq": "constitution"}}},
+			retriever=retriever,
+		)
+		self.assertEqual(len(retriever.calls), 1)
+		self.assertEqual(
+			retriever.calls[0],
+			("What is Article 21?", {"article": {"$eq": "21"}, "document_type": {"$eq": "constitution"}}),
+		)
 		self.assertEqual(len(state["retrieved_documents"]), 2)
 		# Each passage is tagged with its resolvable source_id so generation
 		# can attribute a claim back to a specific citation.
 		self.assertIn("[source_id: article_21]\nhit one", state["context"])
 		self.assertIn("[source_id: unknown_source]\nhit two", state["context"])
+
+	def test_no_document_type_filter_searches_both_corpora_and_combines(self):
+		# The actual anti-crowding-out guarantee: a general/history-intent
+		# query (no document_type in its filter) must not let a single
+		# unconstrained search allow one corpus to squeeze the other out of
+		# context entirely (see KNOWN_ISSUES.md's conceptual-query bug).
+		class FakeRetriever:
+			top_k = 4
+
+			def retrieve(self, query, metadata_filter_override=None):
+				self.calls = getattr(self, "calls", []) + [metadata_filter_override]
+				if metadata_filter_override.get("document_type") == {"$eq": "constitution"}:
+					return {"matches": [{"fields": {"text": "constitution hit", "article": "19", "document_type": "constitution"}}]}
+				return {"matches": [
+					{"fields": {"text": "case hit 1", "document_type": "case_law", "case_id": "x"}},
+					{"fields": {"text": "case hit 2", "document_type": "case_law", "case_id": "x"}},
+				]}
+
+		retriever = FakeRetriever()
+		state = retrieve({"query": "What freedom protects speech?", "metadata_filter": {}}, retriever=retriever)
+
+		self.assertEqual(len(retriever.calls), 2)
+		document_types_queried = {call["document_type"]["$eq"] for call in retriever.calls}
+		self.assertEqual(document_types_queried, {"constitution", "case_law"})
+		# Constitution text must actually be present in context, not
+		# crowded out by however many case-law hits scored higher.
+		self.assertIn("constitution hit", state["context"])
+		self.assertIn("case hit", state["context"])
+		# Constitutional text comes first (authoritative source before
+		# interpretation, matching the generation system prompt's framing).
+		self.assertLess(state["context"].index("constitution hit"), state["context"].index("case hit"))
 
 
 class EvaluationTests(unittest.TestCase):

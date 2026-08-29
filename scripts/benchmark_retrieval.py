@@ -1,4 +1,16 @@
-"""Benchmark retrieval source coverage using Recall@K and Precision@K."""
+"""Benchmark retrieval source coverage using Recall@K and Precision@K.
+
+Runs each question through the actual LangGraph nodes /api/chat uses
+(analyze_query -> build_metadata_filter -> retrieve), not the raw
+PineconeRetriever directly. Earlier versions of this script called the
+retriever alone, which meant a graph-level fix (e.g. the dual-corpus
+retrieval in backend/graph/nodes/retrieval.py, see KNOWN_ISSUES.md) had no
+way to show up here — the benchmark could report a query as failing long
+after it had actually been fixed. Chained through the graph, this reflects
+what a live chat request really does: intent classification, the
+intent-driven document_type filter, and (for general/history intent) the
+dual per-corpus search included.
+"""
 
 import argparse
 import json
@@ -10,6 +22,9 @@ from typing import Any, Optional
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from backend.config import PINECONE_NAMESPACE, RERANK_ENABLED
+from backend.graph.nodes.analyzer import analyze_query
+from backend.graph.nodes.metadata import build_metadata_filter
+from backend.graph.nodes.retrieval import retrieve
 from backend.rag.retriever import PineconeRetriever, create_retriever
 
 
@@ -61,22 +76,12 @@ def load_questions() -> list[dict]:
 	return json.loads(QUESTIONS_PATH.read_text(encoding="utf-8"))
 
 
-def source_ids(response: Any) -> set[str]:
-	if isinstance(response, dict):
-		result = response.get("result", {})
-		matches = result.get("hits") if isinstance(result, dict) else None
-		matches = matches if matches is not None else response.get("matches")
-	else:
-		result = getattr(response, "result", None)
-		matches = getattr(result, "hits", None) if result is not None else None
-		matches = matches if matches is not None else getattr(response, "matches", None)
-	matches = matches or []
+def source_ids_from_hits(hits: list[dict]) -> set[str]:
+	"""Extract source_ids from a graph retrieval node's `retrieved_documents`
+	(already-normalized hit dicts), not a raw Pinecone response."""
 	result = set()
-	for match in matches:
-		if isinstance(match, dict):
-			metadata = match.get("metadata") or match.get("fields", {})
-		else:
-			metadata = getattr(match, "metadata", None) or getattr(match, "fields", {})
+	for hit in hits or []:
+		metadata = hit.get("metadata") or hit.get("fields", {})
 		article = metadata.get("article")
 		if article:
 			result.add(f"article_{article}")
@@ -93,10 +98,16 @@ def run_benchmark(retriever: PineconeRetriever, questions: list[dict], top_k: in
 	rerank_latency_values = []
 	for item in questions:
 		started = time.perf_counter()
-		response = retriever.retrieve(item["question"])
+		# The same node chain /api/chat runs: classify intent + extract any
+		# explicit article/clause reference, layer on the intent-driven
+		# document_type filter, then retrieve (dual per-corpus search when
+		# there's no document_type constraint at all).
+		state = analyze_query({"query": item["question"]})
+		state = build_metadata_filter(state)
+		state = retrieve(state, retriever=retriever)
 		latency_values.append((time.perf_counter() - started) * 1000)
 		rerank_latency_values.append(retriever.last_rerank_latency_ms)
-		retrieved = source_ids(response)
+		retrieved = source_ids_from_hits(state["retrieved_documents"])
 		expected = set(item["expected_source_ids"])
 		hits = retrieved & expected
 		recall = len(hits) / len(expected) if expected else 1.0
@@ -106,6 +117,7 @@ def run_benchmark(retriever: PineconeRetriever, questions: list[dict], top_k: in
 		print(
 			f"{item['id']} Recall@{top_k}={recall:.2%} "
 			f"Precision@{top_k}={precision:.2%} "
+			f"intent={state.get('intent')} "
 			f"expected={sorted(expected)} retrieved={sorted(retrieved)}"
 		)
 	return (
@@ -146,7 +158,7 @@ def main() -> None:
 			namespace=args.namespace,
 			use_reranker=RERANK_ENABLED and not args.no_rerank,
 		)
-		mode = "live Pinecone"
+		mode = "live Pinecone, through the LangGraph retrieval node"
 	else:
 		retriever = PineconeRetriever(
 			pinecone_service=LocalMetadataService(),
@@ -154,7 +166,7 @@ def main() -> None:
 			namespace=args.namespace,
 			use_reranker=RERANK_ENABLED and not args.no_rerank,
 		)
-		mode = "local metadata fixture through PineconeRetriever"
+		mode = "local metadata fixture, through the LangGraph retrieval node"
 
 	questions = load_questions()
 	print(f"Mode: {mode}")
