@@ -18,3 +18,7 @@ class GraphState(TypedDict, total=False):
 	retry_count: int
 	answer: str
 	citations: list[dict]
+	summary: str
+	sections: list[dict]
+	key_clauses: list[dict]
+	explanation: str

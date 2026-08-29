@@ -51,7 +51,9 @@ class ChatAuthTests(unittest.TestCase):
 		body = response.json()
 		self.assertEqual(body["answer"], "Article 21 protects life and liberty.")
 		self.assertEqual(body["citations"], [{"source_id": "article_21", "label": "Article 21"}])
-		mock_supabase.create_conversation.assert_called_once_with("c1", "user-a", "en")
+		mock_supabase.create_conversation.assert_called_once_with(
+			"c1", "user-a", "en", title="What is Article 21?"
+		)
 		mock_supabase.insert_citations.assert_called_once_with(
 			"msg-assistant", [{"source_id": "article_21", "label": "Article 21"}]
 		)

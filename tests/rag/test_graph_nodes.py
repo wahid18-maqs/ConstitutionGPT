@@ -3,9 +3,16 @@
 import unittest
 
 from backend.graph.nodes.analyzer import analyze_query, classify_intent
-from backend.graph.nodes.citations import build_citations
+from backend.graph.nodes.citations import build_citations, citation_for
 from backend.graph.nodes.evaluation import evaluate_context, rewrite_query, route_after_evaluation
-from backend.graph.nodes.generation import LANGUAGE_NAMES, build_prompt
+from backend.graph.nodes.generation import (
+	LANGUAGE_NAMES,
+	_RawKeyClause,
+	_RawSection,
+	_RawStructuredAnswer,
+	build_prompt,
+	generate_answer,
+)
 from backend.graph.nodes.metadata import build_metadata_filter
 from backend.graph.nodes.retrieval import retrieve
 
@@ -64,17 +71,25 @@ class MetadataBuilderTests(unittest.TestCase):
 
 
 class RetrievalNodeTests(unittest.TestCase):
-	def test_retrieve_passes_filter_and_builds_context(self):
+	def test_retrieve_passes_filter_and_builds_labeled_context(self):
 		class FakeRetriever:
 			def retrieve(self, query, metadata_filter_override=None):
 				self.called_with = (query, metadata_filter_override)
-				return {"matches": [{"fields": {"text": "hit one"}}, {"fields": {"text": "hit two"}}]}
+				return {
+					"matches": [
+						{"fields": {"text": "hit one", "article": "21", "document_type": "constitution"}},
+						{"fields": {"text": "hit two"}},
+					]
+				}
 
 		retriever = FakeRetriever()
 		state = retrieve({"query": "What is Article 21?", "metadata_filter": {"article": {"$eq": "21"}}}, retriever=retriever)
 		self.assertEqual(retriever.called_with, ("What is Article 21?", {"article": {"$eq": "21"}}))
 		self.assertEqual(len(state["retrieved_documents"]), 2)
-		self.assertEqual(state["context"], "hit one\n\nhit two")
+		# Each passage is tagged with its resolvable source_id so generation
+		# can attribute a claim back to a specific citation.
+		self.assertIn("[source_id: article_21]\nhit one", state["context"])
+		self.assertIn("[source_id: unknown_source]\nhit two", state["context"])
 
 
 class EvaluationTests(unittest.TestCase):
@@ -119,38 +134,108 @@ class GenerationPromptTests(unittest.TestCase):
 	def test_prompt_requests_target_language(self):
 		prompt = build_prompt({"query": "What is Article 21?", "language": "ta", "context": "context text", "chat_history": []})
 		self.assertIn(LANGUAGE_NAMES["ta"], prompt)
-		self.assertIn("research aid, not legal advice", prompt)
 		self.assertIn("context text", prompt)
 
 	def test_prompt_defaults_to_english(self):
 		prompt = build_prompt({"query": "q", "context": "", "chat_history": []})
 		self.assertIn("English", prompt)
 
+	def test_prompt_explains_labeled_source_id_citation_rule(self):
+		prompt = build_prompt({"query": "q", "context": "", "chat_history": []})
+		self.assertIn("source_id", prompt)
 
-class CitationsTests(unittest.TestCase):
-	def test_article_hit_produces_article_citation(self):
-		state = build_citations({"retrieved_documents": [{"fields": {"article": "21", "document_type": "constitution"}}]})
-		self.assertEqual(state["citations"], [{"source_id": "article_21", "label": "Article 21"}])
 
-	def test_case_law_hit_produces_case_citation(self):
+class CitationForTests(unittest.TestCase):
+	def test_article_metadata_produces_article_citation(self):
+		self.assertEqual(
+			citation_for({"article": "21", "document_type": "constitution"}),
+			{"source_id": "article_21", "label": "Article 21"},
+		)
+
+	def test_case_law_metadata_produces_case_citation(self):
+		self.assertEqual(
+			citation_for({
+				"document_type": "case_law",
+				"case_id": "maneka_gandhi_1978",
+				"case_name": "Maneka Gandhi v. Union of India",
+			}),
+			{"source_id": "maneka_gandhi_1978", "label": "Maneka Gandhi v. Union of India"},
+		)
+
+	def test_unidentifiable_metadata_returns_none(self):
+		self.assertIsNone(citation_for({}))
+
+
+class BuildCitationsTests(unittest.TestCase):
+	def test_flat_list_is_union_of_section_and_key_clause_citations(self):
 		state = build_citations({
-			"retrieved_documents": [{
-				"fields": {
-					"document_type": "case_law",
-					"case_id": "maneka_gandhi_1978",
-					"case_name": "Maneka Gandhi v. Union of India",
-				}
-			}]
+			"sections": [{"citations": [{"source_id": "article_21", "label": "Article 21"}]}],
+			"key_clauses": [{"citations": [{"source_id": "article_14", "label": "Article 14"}]}],
 		})
 		self.assertEqual(
 			state["citations"],
-			[{"source_id": "maneka_gandhi_1978", "label": "Maneka Gandhi v. Union of India"}],
+			[
+				{"source_id": "article_21", "label": "Article 21"},
+				{"source_id": "article_14", "label": "Article 14"},
+			],
 		)
 
-	def test_duplicate_sources_are_deduplicated(self):
-		hit = {"fields": {"article": "21", "document_type": "constitution"}}
-		state = build_citations({"retrieved_documents": [hit, hit]})
+	def test_duplicate_sources_across_pieces_are_deduplicated(self):
+		citation = {"source_id": "article_21", "label": "Article 21"}
+		state = build_citations({
+			"sections": [{"citations": [citation]}],
+			"key_clauses": [{"citations": [citation]}],
+		})
 		self.assertEqual(len(state["citations"]), 1)
+
+	def test_no_sections_or_key_clauses_yields_empty_citations(self):
+		state = build_citations({})
+		self.assertEqual(state["citations"], [])
+
+
+class GenerateAnswerResolutionTests(unittest.TestCase):
+	"""The actual anti-fabrication guarantee: a source_id the model claims
+	but that was never retrieved must be dropped, not passed through."""
+
+	def test_unretrieved_source_id_is_dropped_retrieved_one_is_kept(self):
+		class FakeStructuredModel:
+			def invoke(self, prompt):
+				return _RawStructuredAnswer(
+					summary="Article 21 protects life and liberty.",
+					sections=[
+						_RawSection(
+							heading="Article 21",
+							body="No person shall be deprived of life or liberty except by procedure established by law.",
+							cite_source_ids=["article_21", "article_999"],
+						)
+					],
+					key_clauses=[
+						_RawKeyClause(text="Procedure established by law", cite_source_ids=["article_999"])
+					],
+					explanation="This establishes a fundamental right.",
+				)
+
+		state = {
+			"query": "What is Article 21?",
+			"language": "en",
+			"context": "[source_id: article_21]\n21. Protection of life...",
+			"chat_history": [],
+			"retrieved_documents": [
+				{"fields": {"article": "21", "document_type": "constitution", "text": "21. Protection of life..."}}
+			],
+		}
+		result = generate_answer(state, model=FakeStructuredModel())
+
+		self.assertEqual(len(result["sections"]), 1)
+		self.assertEqual(
+			result["sections"][0]["citations"],
+			[{"source_id": "article_21", "label": "Article 21"}],
+		)
+		# article_999 was never retrieved -- must not survive into either
+		# the section or the key clause that claimed it.
+		self.assertEqual(result["key_clauses"][0]["citations"], [])
+		self.assertIn("This is a research aid, not legal advice.", result["explanation"])
+		self.assertIn("Article 21", result["answer"])
 
 
 if __name__ == "__main__":

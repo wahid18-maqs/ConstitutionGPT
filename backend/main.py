@@ -13,6 +13,7 @@ from backend.api.routes.auth import router as auth_router
 from backend.api.routes.chat import router as chat_router
 from backend.api.routes.feedback import router as feedback_router
 from backend.api.routes.share import router as share_router
+from backend.api.routes.sources import router as sources_router
 from backend.config import ALLOWED_ORIGINS
 
 
@@ -53,6 +54,7 @@ app.include_router(auth_router)
 app.include_router(chat_router)
 app.include_router(feedback_router)
 app.include_router(share_router)
+app.include_router(sources_router)
 
 
 @app.exception_handler(RequestValidationError)

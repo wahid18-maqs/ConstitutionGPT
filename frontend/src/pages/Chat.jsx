@@ -1,1 +1,192 @@
-/** Chat page placeholder for ConstituteAI. */
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import Sidebar from "../components/Sidebar";
+import TopBar from "../components/TopBar";
+import MessageBubble from "../components/MessageBubble";
+import SourceExplorer from "../components/SourceExplorer";
+import { getHistory, postChat, postShare } from "../services/api";
+
+/**
+ * Chat interface wired to the real Pinecone-backed /api/chat endpoint.
+ * The top-bar search box, quick-action chips, and sidebar topic nav all
+ * feed into the same chat pipeline — there's no separate search results
+ * view or /api/search endpoint yet, so "search" here means "ask the
+ * assistant," which the backend already answers well for this kind of
+ * query. The language selector is still a separate, later step.
+ */
+export default function Chat() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchValue, setSearchValue] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [draft, setDraft] = useState("");
+  const [conversationId, setConversationId] = useState(
+    () => searchParams.get("conversation") || crypto.randomUUID(),
+  );
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState(null);
+  const [activeCitation, setActiveCitation] = useState(null);
+  const [language, setLanguage] = useState("en");
+  const [shareStatus, setShareStatus] = useState(null);
+  const searchInputRef = useRef(null);
+
+  // Loading an existing conversation from History (?conversation=<id>).
+  // Structured messages (summary/sections/key_clauses/explanation) are
+  // persisted alongside the flat content, so a loaded conversation renders
+  // identically to how it looked live, not degraded to flat text.
+  useEffect(() => {
+    const existingId = searchParams.get("conversation");
+    if (!existingId) return;
+    setConversationId(existingId);
+    getHistory(existingId)
+      .then((data) => {
+        setMessages(
+          data.messages.map((message) => ({
+            id: message.id,
+            role: message.role,
+            content: message.content,
+            summary: message.summary,
+            sections: message.sections,
+            keyClauses: message.key_clauses,
+            explanation: message.explanation,
+          })),
+        );
+      })
+      .catch((err) => setError(err.message || "Could not load this conversation."));
+  }, [searchParams]);
+
+  function handleNewChat() {
+    setMessages([]);
+    setDraft("");
+    setSearchValue("");
+    setError(null);
+    setActiveCitation(null);
+    setConversationId(crypto.randomUUID());
+    setSearchParams({});
+  }
+
+  async function sendMessage(text) {
+    const trimmed = text.trim();
+    if (!trimmed || sending) return;
+
+    setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", content: trimmed }]);
+    setError(null);
+    setSending(true);
+    try {
+      const response = await postChat(trimmed, language, conversationId);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: response.message_id,
+          role: "assistant",
+          content: response.answer,
+          citations: response.citations,
+          summary: response.summary,
+          sections: response.sections,
+          keyClauses: response.key_clauses,
+          explanation: response.explanation,
+        },
+      ]);
+    } catch (err) {
+      setError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  function handleDraftSubmit(event) {
+    event.preventDefault();
+    sendMessage(draft);
+    setDraft("");
+  }
+
+  function handleSearchSubmit(event) {
+    event.preventDefault();
+    if (!searchValue.trim()) return;
+    sendMessage(searchValue);
+    setSearchValue("");
+  }
+
+  function handleQuickAction(label) {
+    setSearchValue("");
+    sendMessage(label);
+  }
+
+  function handleFocusSearch() {
+    searchInputRef.current?.focus();
+  }
+
+  function handleTopicSelect(query) {
+    sendMessage(query);
+  }
+
+  async function handleShare() {
+    if (messages.length === 0) return;
+    setShareStatus("Sharing…");
+    try {
+      const { share_id } = await postShare(conversationId);
+      const link = `${window.location.origin}/share/${share_id}`;
+      await navigator.clipboard.writeText(link);
+      setShareStatus("Link copied!");
+    } catch (err) {
+      setShareStatus(err.message || "Could not create a share link.");
+    } finally {
+      setTimeout(() => setShareStatus(null), 4000);
+    }
+  }
+
+  return (
+    <div className="flex h-screen bg-cream">
+      <Sidebar onNewChat={handleNewChat} onFocusSearch={handleFocusSearch} onTopicSelect={handleTopicSelect} />
+
+      <div className="flex flex-1 flex-col">
+        <TopBar
+          searchValue={searchValue}
+          onSearchChange={setSearchValue}
+          onSearchSubmit={handleSearchSubmit}
+          onQuickAction={handleQuickAction}
+          searchInputRef={searchInputRef}
+          language={language}
+          onLanguageChange={setLanguage}
+          onShare={handleShare}
+          shareStatus={shareStatus}
+        />
+
+        <main className="flex-1 space-y-4 overflow-y-auto px-6 py-6">
+          {messages.length === 0 ? (
+            <p className="text-sm text-navy/50">
+              Ask a question about the Constitution to get started.
+            </p>
+          ) : (
+            messages.map((message) => (
+              <MessageBubble key={message.id} {...message} onCitationClick={setActiveCitation} />
+            ))
+          )}
+          {sending && <p className="text-sm text-navy/50">Thinking…</p>}
+          {error && <p className="text-sm text-red-600">{error}</p>}
+        </main>
+
+        <form onSubmit={handleDraftSubmit} className="flex gap-2 border-t border-navy/10 bg-white px-6 py-4">
+          <input
+            type="text"
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            placeholder="Type your question…"
+            disabled={sending}
+            className="flex-1 rounded-full border border-navy/20 px-4 py-2 text-sm focus:border-navy focus:outline-none disabled:opacity-60"
+          />
+          <button
+            type="submit"
+            disabled={sending}
+            className="rounded-full bg-amber px-5 py-2 text-sm font-semibold text-white transition hover:bg-amber/90 disabled:opacity-60"
+          >
+            Send
+          </button>
+        </form>
+      </div>
+
+      {activeCitation && (
+        <SourceExplorer citation={activeCitation} onClose={() => setActiveCitation(null)} />
+      )}
+    </div>
+  );
+}

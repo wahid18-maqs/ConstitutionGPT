@@ -47,11 +47,13 @@ def get_user_from_token(access_token: str) -> dict:
 	return {"user_id": response.user.id, "email": response.user.email}
 
 
-def create_conversation(conversation_id: str, user_id: str, language: str = "en") -> dict:
+def create_conversation(
+	conversation_id: str, user_id: str, language: str = "en", title: Optional[str] = None
+) -> dict:
 	result = (
 		get_client()
 		.table("conversations")
-		.insert({"id": conversation_id, "user_id": user_id, "language": language})
+		.insert({"id": conversation_id, "user_id": user_id, "language": language, "title": title})
 		.execute()
 	)
 	return result.data[0] if result.data else {}
@@ -69,13 +71,25 @@ def get_conversation(conversation_id: str) -> Optional[dict]:
 	return result.data[0] if result.data else None
 
 
-def insert_message(conversation_id: str, role: str, content: str) -> dict:
+def list_conversations(user_id: str) -> list[dict]:
 	result = (
 		get_client()
-		.table("messages")
-		.insert({"conversation_id": conversation_id, "role": role, "content": content})
+		.table("conversations")
+		.select("*")
+		.eq("user_id", user_id)
+		.order("updated_at", desc=True)
 		.execute()
 	)
+	return result.data or []
+
+
+def insert_message(
+	conversation_id: str, role: str, content: str, structured_answer: Optional[dict] = None
+) -> dict:
+	row = {"conversation_id": conversation_id, "role": role, "content": content}
+	if structured_answer is not None:
+		row["structured_answer"] = structured_answer
+	result = get_client().table("messages").insert(row).execute()
 	return result.data[0] if result.data else {}
 
 

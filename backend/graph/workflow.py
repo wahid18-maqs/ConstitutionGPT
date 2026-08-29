@@ -69,4 +69,8 @@ def run(query: str, language: str, chat_history: Optional[list[Any]] = None) -> 
 		"citations": final_state.get("citations", []),
 		"context": final_state.get("retrieved_documents", []),
 		"intent": final_state.get("intent"),
+		"summary": final_state.get("summary", ""),
+		"sections": final_state.get("sections", []),
+		"key_clauses": final_state.get("key_clauses", []),
+		"explanation": final_state.get("explanation", ""),
 	}

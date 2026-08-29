@@ -5,7 +5,8 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException
 
 from backend.api.dependencies import get_current_user
-from backend.models.chat import HistoryMessage, ShareRequest, ShareResponse, SharedConversationResponse
+from backend.api.routes.chat import history_message_from_row
+from backend.models.chat import ShareRequest, ShareResponse, SharedConversationResponse
 from backend.models.user import UserResponse
 from backend.services import supabase as supabase_service
 
@@ -36,5 +37,5 @@ def get_share(share_id: str):
 		raise HTTPException(status_code=404, detail="Share link not found")
 	return SharedConversationResponse(
 		conversation_id=resolved["conversation"]["id"],
-		messages=[HistoryMessage(**message) for message in resolved["messages"]],
+		messages=[history_message_from_row(message) for message in resolved["messages"]],
 	)
