@@ -201,13 +201,13 @@ export default function Sidebar({
           <BookOpen size={16} className="shrink-0" />
           History
         </Link>
-        <button
-          type="button"
+        <Link
+          to="/settings"
           className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-muted transition hover:bg-border/60 hover:text-heading"
         >
           <Settings size={16} className="shrink-0" />
           Settings
-        </button>
+        </Link>
       </div>
     </aside>
   );
