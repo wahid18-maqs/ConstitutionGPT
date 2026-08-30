@@ -203,6 +203,62 @@ promoted into `instructions_refactor.md`.
 
 ### 2.1 Expandable sidebar sub-menus
 
+**Visual mockup:**
+
+```
+⚖ ConstituteAI                    ☰
+├─────────────────────────┤
+│  [ + New Chat ]           │
+├─────────────────────────┤
+│  🔍 Search Articles     ▾ │
+│     ├─ Search by Number   │
+│     ├─ Search by Topic    │
+│     └─ Full-Text Search   │
+│                            │
+│  📖 Constitutional         │
+│     History             ▸ │  ← collapsed (not built yet)
+│                            │
+│  ⚖ Fundamental Rights   ▾ │
+│     ├─ Right to Equality  │
+│     ├─ Right to Freedom   │
+│     ├─ Against Exploit.   │
+│     ├─ Religion Freedom   │
+│     ├─ Cultural Rights    │
+│     └─ Const. Remedies    │
+│                            │
+│  ⚖ Directive Principles ▸ │
+│  🔨 Case Studies        ▸ │  ← only 2/7 cases ready
+├─────────────────────────┤
+│  ⚙ Settings                │
+└─────────────────────────┘
+```
+
+`▾` = expanded (cheap, build-now items — Search Articles, Fundamental
+Rights). `▸` = collapsed/greyed (parked — Constitutional History needs new
+data per Tier C below, Case Studies gated on more cases per Tier B, and
+Directive Principles left collapsed here only as a mockup simplification —
+it's actually Tier A/build-now per the table below, same treatment as
+Fundamental Rights).
+
+Clicking a sub-item flows into the existing Source Explorer panel — it
+doesn't open a new component, it reuses the one already built for citation
+clicks:
+
+```
+Click "Right to Equality"
+        │
+        ▼
+┌──────────────────┐        ┌────────────────────────┐
+│  SIDEBAR (left)   │  ───▶  │  SOURCE EXPLORER (right) │
+│  sub-item clicked │        │  updates to show:        │
+└──────────────────┘        │  • Article 14 text       │
+                             │  • Article 15 text       │
+                             │  • Article 16 text...    │
+                             │  (same panel citations    │
+                             │   already open into)      │
+                             └────────────────────────┘
+```
+
 **Discussion / rationale (why this is parked, not just a table):**
 
 Right now the sidebar is 5 flat links that, per the base spec, just exist —
@@ -211,6 +267,31 @@ each one expand into sub-items, and clicking any sub-item pushes relevant
 content into the Source Explorer panel — turning the sidebar from
 "navigation" into a browsable content library alongside the chat, reusing
 the same panel that already displays citation-triggered source text.
+
+**Source Explorer — content shapes it needs to support:**
+
+Section 1.6 specs the panel's *styling* for its one currently-built use
+case (a single clicked citation). Part 2's features all reuse the same
+panel component, but push different *shapes* of content into it — worth
+being explicit about what each looks like before building, so the panel
+is designed to flex rather than needing rework per feature:
+
+| Trigger | Content shape | Built today? |
+|---|---|---|
+| Citation chip click (chat) | One source: header + verified extract + (if case law) related judgments | ✅ Yes — built, live-verified |
+| Fundamental Rights / DPSP sub-item | **Multiple** sources stacked: one header + extract block per article in the range (e.g. 5 articles for "Right to Equality") | ❌ No — panel currently assumes one source, not a list |
+| Search by Number | Same as citation click — one source | ❌ No — needs wiring to the input, panel itself unchanged |
+| Search by Topic | **Ranked list** of results (article/case + score), each expandable to full text — closer to a mini results-list UI than a single extract | ❌ No — new content shape, not just new data |
+| Full-Text Search | List of literal keyword matches, each showing the matched snippet in context | ❌ No — new content shape |
+| Case Studies | One case: header + judgment extract + related provisions — same shape as citation click, case-law variant | Partially — case-law citation click already works; a dedicated "browse all cases" entry point doesn't exist |
+| Constitutional History | Unknown — depends on content type (timeline vs. debate transcript vs. amendment list each likely need different layouts) | ❌ No — blocked on Tier C content pipeline existing at all first |
+
+**Implication for Tier A build order:** before building the Fundamental
+Rights/DPSP sub-item flow (2.2 → A1), the Source Explorer component needs
+to support rendering **multiple stacked source blocks**, not just one —
+this is a small but real change to the panel itself, not purely new
+sidebar UI. Add "extend SourceExplorer to accept a list of sources, not
+just one" as an explicit step in A1, not an assumed given.
 
 Breaking down each one, what it actually is and how big it is:
 
@@ -315,10 +396,13 @@ Steps:
    (Socialist/Gandhian/Liberal-Intellectual) as a small config/constant,
    since this isn't a clean numeric range like Fundamental Rights.
 3. Frontend: add sub-item list under each sidebar nav item (per the
-   diagram already discussed) — expand/collapse UI, `▾`/`▸` states.
-4. Frontend: clicking a sub-item calls the new endpoint and renders
-   results in the **existing** Source Explorer component — no new panel
-   component needed, only a new content-population path into it.
+   diagram in Section 2.1 above) — expand/collapse UI, `▾`/`▸` states.
+4. Frontend: **extend SourceExplorer to accept and render a list of
+   sources, not just one** (see the content-shapes table above — this is
+   new capability, not a given) — then wire the sub-item click to call
+   the new endpoint and render the resulting article list through that
+   extended component. No new *panel*, but real changes to what it can
+   display.
 5. Test: confirm each range/category returns the correct, complete set
    of articles — spot-check against the real constitutional text.
 

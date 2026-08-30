@@ -9,6 +9,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from backend.case_law import CASE_METADATA  # noqa: E402
 from scripts.chunk import chunk_text  # noqa: E402
 
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
@@ -29,19 +30,8 @@ PARAGRAPH_PATTERN = re.compile(r"(?m)^\s*(\d{1,4})\.\s+")
 # windows catches that case.
 MAX_PARAGRAPH_CHARS = 6000
 
-# Per-file case metadata that isn't reliably recoverable from body text alone.
-CASE_METADATA = {
-	"maneka_gandhi_1978": {
-		"case_name": "Maneka Gandhi v. Union of India",
-		"year": 1978,
-		"court": "Supreme Court of India",
-	},
-	"shreya_singhal_2015": {
-		"case_name": "Shreya Singhal v. Union of India",
-		"year": 2015,
-		"court": "Supreme Court of India",
-	},
-}
+# CASE_METADATA now lives in backend/case_law.py (single source of truth
+# shared with backend/api/routes/sources.py's related_cases lookup).
 
 
 def split_by_paragraph_number(text: str) -> list[str]:

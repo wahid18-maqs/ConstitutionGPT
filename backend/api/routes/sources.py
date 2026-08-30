@@ -6,6 +6,7 @@ lookups as not needing an account.
 
 from fastapi import APIRouter, HTTPException
 
+from backend.case_law import CASE_METADATA
 from backend.config import PINECONE_NAMESPACE
 from backend.models.source import SourceResponse
 from backend.services.pinecone import PineconeService
@@ -14,6 +15,17 @@ from backend.services.pinecone_chat import hits_from_response
 router = APIRouter()
 
 _service = None
+
+
+def _related_cases_for_article(article: str) -> list[str]:
+	"""Reverse-lookup: which indexed cases' related_articles include this
+	article? Powers the Source Explorer's "Landmark judgments" section
+	(Ui updates and features.md 1.6) for constitutional-text sources."""
+	return [
+		f"{meta['case_name']} ({meta['year']})"
+		for meta in CASE_METADATA.values()
+		if article in meta.get("related_articles", [])
+	]
 
 
 def _get_service() -> PineconeService:
@@ -42,15 +54,16 @@ def get_source(source_id: str):
 
 	fields = hits[0].get("fields", {})
 	combined_text = "\n\n".join(hit.get("fields", {}).get("text", "") for hit in hits)
+	article_number = fields.get("article")
 
 	return SourceResponse(
 		source_id=source_id,
-		article=fields.get("article"),
+		article=article_number,
 		clause=fields.get("clause"),
 		original_text=combined_text,
 		document=fields.get("case_name") or "Constitution of India",
 		page=int(fields["page"]) if fields.get("page") is not None else None,
 		source_type=fields.get("source_type") or fields.get("category") or "unknown",
 		related_provisions=[],
-		related_cases=[],
+		related_cases=_related_cases_for_article(article_number) if article_number else [],
 	)
