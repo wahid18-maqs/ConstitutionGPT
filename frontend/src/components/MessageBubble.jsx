@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ThumbsDown, ThumbsUp } from "lucide-react";
 import CitationChip from "./CitationChip";
 import { postFeedback } from "../services/api";
 
@@ -34,27 +35,27 @@ function FeedbackRow({ messageId }) {
   }
 
   return (
-    <div className="flex items-center gap-2 pt-1">
+    <div className="flex items-center gap-3 pt-1">
       <button
         type="button"
         onClick={() => choose("positive")}
         disabled={choice !== null}
         aria-label="Helpful"
-        className={`text-sm ${choice === "positive" ? "text-amber" : "text-navy/40 hover:text-navy"}`}
+        className={choice === "positive" ? "text-gold" : "text-muted hover:text-heading"}
       >
-        👍
+        <ThumbsUp size={15} />
       </button>
       <button
         type="button"
         onClick={() => choose("negative")}
         disabled={choice !== null}
         aria-label="Not helpful"
-        className={`text-sm ${choice === "negative" ? "text-amber" : "text-navy/40 hover:text-navy"}`}
+        className={choice === "negative" ? "text-gold" : "text-muted hover:text-heading"}
       >
-        👎
+        <ThumbsDown size={15} />
       </button>
-      {choice && <span className="text-xs text-navy/50">Thanks for the feedback.</span>}
-      {error && <span className="text-xs text-red-600">{error}</span>}
+      {choice && <span className="text-xs text-muted">Thanks for the feedback.</span>}
+      {error && <span className="text-xs text-red-400">{error}</span>}
     </div>
   );
 }
@@ -83,7 +84,9 @@ export default function MessageBubble({
   if (role === "user") {
     return (
       <div className="flex justify-end">
-        <div className="max-w-lg rounded-2xl bg-navy px-4 py-2 text-sm text-white">{content}</div>
+        <div className="max-w-lg rounded-2xl border border-border-strong/50 bg-border px-4 py-2 text-sm text-heading">
+          {content}
+        </div>
       </div>
     );
   }
@@ -91,7 +94,7 @@ export default function MessageBubble({
   const hasStructure = summary || sections?.length || keyClauses?.length || explanation;
   if (!hasStructure) {
     return (
-      <div className="max-w-2xl space-y-2 text-sm text-navy">
+      <div className="max-w-2xl space-y-4 rounded-2xl border border-border bg-panel p-4 text-sm text-body">
         <p className="whitespace-pre-wrap">{content}</p>
         <CitationRow citations={citations} onCitationClick={onCitationClick} />
         {!readOnly && <FeedbackRow messageId={id} />}
@@ -100,26 +103,26 @@ export default function MessageBubble({
   }
 
   return (
-    <div className="max-w-2xl space-y-4 text-sm text-navy">
+    <div className="max-w-2xl space-y-4 rounded-2xl border border-border bg-panel p-4 text-sm text-body">
       {summary && (
         <p>
-          <span className="font-semibold">Summary: </span>
+          <span className="font-semibold text-heading">Summary: </span>
           {summary}
         </p>
       )}
 
       {sections?.map((section, index) => (
         <div key={index}>
-          <h3 className="font-semibold text-navy">{section.heading}</h3>
+          <h3 className="font-semibold text-heading">{section.heading}</h3>
           <p className="mt-1 whitespace-pre-wrap">{section.body}</p>
           <CitationRow citations={section.citations} onCitationClick={onCitationClick} />
         </div>
       ))}
 
       {keyClauses?.length > 0 && (
-        <div>
-          <h3 className="font-semibold text-navy">Key Clauses</h3>
-          <ul className="mt-1 list-disc space-y-2 pl-5">
+        <div className="rounded-xl border border-border bg-base/60 p-4">
+          <h3 className="font-semibold text-heading">Key Clauses</h3>
+          <ul className="mt-2 list-disc space-y-2 pl-5">
             {keyClauses.map((clause, index) => (
               <li key={index}>
                 {clause.text}
@@ -132,8 +135,8 @@ export default function MessageBubble({
 
       {explanation && (
         <div>
-          <h3 className="font-semibold text-navy">Explanation</h3>
-          <p className="mt-1 whitespace-pre-wrap text-navy/90">{explanation}</p>
+          <h3 className="font-semibold text-heading">Explanation</h3>
+          <p className="mt-1 whitespace-pre-wrap text-body-muted">{explanation}</p>
         </div>
       )}
 

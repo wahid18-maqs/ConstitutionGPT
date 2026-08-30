@@ -30,3 +30,10 @@ ALLOWED_ORIGINS = tuple(
 	).split(",")
 	if origin.strip()
 )
+# Vite picks the next free port (5174, 5175, ...) whenever 5173 is already
+# taken, which would otherwise mean editing ALLOWED_ORIGINS by hand every
+# time. `VERCEL` is set automatically in every Vercel deployment, so this
+# regex only ever applies to local development, never production -
+# ALLOWED_ORIGINS above stays the sole, explicit allowlist there.
+IS_VERCEL = bool(os.getenv("VERCEL"))
+LOCALHOST_ORIGIN_REGEX = None if IS_VERCEL else r"^http://(localhost|127\.0\.0\.1):\d+$"

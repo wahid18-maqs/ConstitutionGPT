@@ -1,18 +1,153 @@
 # Known Issues
 
-## Incomplete: Phase 2.5 case-law ingestion is a pilot, not the full corpus
+## Deferred (not blocking): Phase 2.5 case-law ingestion is a pilot, not the full corpus
 
-**Status:** Pilot complete and verified (pipeline built, indexed, live-retrieval-tested); the remaining scope from `instructions_refactor.md` Section "Phase 2.5" is not done.
+**Status:** Pilot complete and verified (pipeline built, indexed, live-retrieval-tested) and considered sufficient for now. Expanding beyond the pilot's 2 cases via the Indian Kanoon fetch integration below is intentionally deferred indefinitely — not scheduled — since the pilot already meets the product's working bar. Revisit only if there's a concrete need for broader case-law coverage.
 
-**What's done:**
-- Ingestion/chunking/indexing pipeline for case law (`scripts/ingest.py` boilerplate stripping, `scripts/chunk_case_law.py` paragraph-boundary chunking, case-law metadata schema, `scripts/index.py` reused unchanged).
-- 2 of the 7 landmark cases named in the product spec ingested and indexed under `document_type: case_law`: **Maneka Gandhi v. Union of India (1978)** and **Shreya Singhal v. Union of India (2015)**, sourced from official/public-domain SC judgment text.
-- Retrieval verified live: both cases correctly retrievable, citations correctly wired (`backend/graph/nodes/citations.py`), 75% recall/precision on the 4 case-law benchmark questions.
+**Sourcing strategy revised:** Case law is now an open-ended, continuously growing list, not a fixed 7-case target. Ingestion is therefore moving from manual PDF hunting to an API-driven fetch step feeding the existing pipeline unchanged.
 
-**What's remaining:**
-- **5 of 7 spec-named landmark cases are not yet ingested**: Kesavananda Bharati v. State of Kerala, Minerva Mills v. Union of India, I.C. Golaknath v. State of Punjab, S.R. Bommai v. Union of India, K.S. Puttaswamy v. Union of India. These were deliberately deferred (some run 500+ pages) to keep the pilot scoped — the same pipeline (`scripts/ingest.py` → `scripts/chunk_case_law.py` → `scripts/index.py`) is rerunnable to add them incrementally; each new case only needs its source PDF placed in `data/raw/case_law/` and an entry added to `CASE_METADATA` in `scripts/chunk_case_law.py`.
-- **The "case law not yet available" placeholder guard (instructions_refactor.md non-negotiable #6) is not implemented.** Today, asking about an unindexed case (e.g. "Explain Kesavananda Bharati") is correctly classified as `case_law` intent and correctly does *not* fabricate an answer about that case — but it also doesn't say "not yet available"; it silently falls back to whatever *is* indexed (currently only Maneka Gandhi/Shreya Singhal content), which could read as a non-sequitur to a user rather than a clear "we don't have this yet." This guard belongs to the Phase 3 intent router / Phase 4 Source Explorer per the original plan, since no case-law-specific route or UI panel exists yet to attach it to — implement it when those land, not as a standalone patch now.
-- Case-law-specific evaluation coverage is thin: only 4 benchmark questions (`data/evaluation/questions.json`, q29–q32), both against the same 2 ingested cases. Should grow alongside each newly-ingested case.
+## What's done
+
+* Ingestion/chunking/indexing pipeline for case law:
+
+  * `scripts/ingest.py` — boilerplate stripping
+  * `scripts/chunk_case_law.py` — paragraph-boundary chunking
+  * Case-law metadata schema
+  * `scripts/index.py` — reused unchanged
+* 2 cases ingested and indexed under `document_type: case_law`:
+
+  * **Maneka Gandhi v. Union of India (1978)**
+  * **Shreya Singhal v. Union of India (2015)**
+* Both cases were sourced from official/public-domain SC judgment text (SCI JUDIS PDFs).
+* Live retrieval verified: both cases are correctly retrievable.
+* Citations are correctly wired through `backend/graph/nodes/citations.py`.
+* Case-law benchmark currently reports **100% recall / 100% precision** after the graph fix. The earlier 75%/75% result is superseded; see `KNOWN_ISSUES.md` for the post-fix benchmark numbers.
+
+## Sourcing strategy — revised
+
+The landmark-case list is no longer fixed at 7. It is an open, growing set spanning multiple eras, including recent (2023–2026) judgments that don't reliably exist as standalone SCI JUDIS PDFs yet.
+
+### Foundational
+
+* Kesavananda Bharati (1973)
+* Golaknath (1967)
+* Minerva Mills (1980)
+* S.R. Bommai (1994)
+* K.S. Puttaswamy (2017)
+
+### Modern Constitutional
+
+* In Re: Article 370 (2023)
+* ADR v. Election Commission (2024)
+* State of Punjab v. Davinder Singh (2024)
+* Property Owners Association (2024)
+
+### AI / Legal-AI
+
+* Pooja Ramesh Singh v. J&K Bank (2026)
+
+A one-time manual SCI-PDF hunt per case doesn't scale against a list that keeps growing. Each new landmark judgment, especially recent ones, would otherwise require repeating the same manual sourcing effort indefinitely.
+
+## Decision
+
+Use the **Indian Kanoon API** as the *fetch mechanism only*, not as a replacement for the existing pipeline or citation standards.
+
+1. Indian Kanoon's search/document API locates and fetches judgment text, solving the scaling problem of manually sourcing each case, especially recent judgments that are not yet cleanly available as SCI PDFs.
+
+2. Fetched text feeds into the **existing, unchanged** pipeline:
+
+   ```text
+   Indian Kanoon API
+          ↓
+   Case-law fetch
+          ↓
+   scripts/chunk_case_law.py
+          ↓
+   scripts/index.py
+          ↓
+   Pinecone
+   ```
+
+   No changes are needed to the parsing, chunking, metadata schema, or indexing logic already proven on the first two cases.
+
+3. **"Powered by IKanoon" attribution**, required by their API terms for RAG use, will be added once, prominently, in the app's About/Sources section rather than per result, consistent with the terms' expectations.
+
+4. **Apply for Indian Kanoon's non-commercial API verification early.** The stated ₹10,000/month free credit is preferable to the ₹0.50/request pay-as-you-go rate if approved. Apply now rather than after building the pipeline around the API, since approval timing is unknown.
+
+5. **Where an official SCI JUDIS PDF exists for a case, continue to prefer citing/linking it as the canonical source** in the app's citations. Indian Kanoon is the fetch mechanism; SCI remains the source of record where available. This preserves the existing authority/copyright rationale rather than fully substituting Indian Kanoon for the official source.
+
+## What's remaining
+
+### 1. Indian Kanoon fetch integration
+
+None of the foundational, modern, or AI/legal-AI cases listed above are yet ingested.
+
+The next step is building the Indian Kanoon fetch integration:
+
+* `search_case_law()`
+* `get_case()`
+
+This is **not** a replacement for the existing ingestion pipeline.
+
+The downstream pipeline remains unchanged and rerunnable:
+
+```text
+API fetch
+   ↓
+scripts/chunk_case_law.py
+   ↓
+scripts/index.py
+   ↓
+Pinecone
+```
+
+Each new case should still only require an entry in `CASE_METADATA` in `scripts/chunk_case_law.py`.
+
+### 2. "Case law not yet available" placeholder guard
+
+The **"case law not yet available" placeholder guard** from `instructions_refactor.md` non-negotiable #6 is not implemented.
+
+Currently, asking about an unindexed case, for example:
+
+> "Explain Kesavananda Bharati"
+
+is correctly classified as `case_law` intent and does not fabricate an answer about that case.
+
+However, it also does not explicitly say:
+
+> "This case is not yet available."
+
+Instead, it silently falls back to whatever case law *is* indexed. This could appear as a non-sequitur to the user rather than a clear availability message.
+
+This guard belongs to the **Phase 3 intent router / Phase 4 Source Explorer** from the original plan because there is currently no dedicated case-law route or UI panel to attach it to.
+
+Therefore, implement it when those components land rather than as a standalone patch now.
+
+Once the Indian Kanoon fetch tool exists, the guard should distinguish between:
+
+* **Not indexed but fetchable on demand**
+* **Not available at all**
+
+This is a design decision to resolve alongside the guard rather than before the fetch integration.
+
+### 3. Case-law evaluation coverage
+
+Case-law-specific evaluation coverage is currently thin:
+
+* Only 4 benchmark questions exist in `data/evaluation/questions.json`.
+* These are `q29–q32`.
+* All four currently test against the same two ingested cases.
+
+Coverage should grow alongside each newly ingested case.
+
+At minimum, add one evaluation question for each newly added tier:
+
+* **Foundational**
+* **Modern Constitutional**
+* **AI / Legal-AI**
+
+once cases from those tiers are ingested.
+
 
 ## Incomplete: Phase 4 responsive mobile layout not built
 

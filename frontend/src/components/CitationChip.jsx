@@ -5,7 +5,7 @@ export default function CitationChip({ citation, onClick }) {
     <button
       type="button"
       onClick={() => onClick(citation)}
-      className="inline-flex items-center rounded-full bg-navy/10 px-2 py-0.5 text-xs font-medium text-navy transition hover:bg-navy/20"
+      className="inline-flex items-center rounded-full bg-gold/15 px-2 py-0.5 text-xs font-medium text-gold transition hover:bg-gold/25"
     >
       {citation.label}
     </button>

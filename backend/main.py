@@ -14,7 +14,7 @@ from backend.api.routes.chat import router as chat_router
 from backend.api.routes.feedback import router as feedback_router
 from backend.api.routes.share import router as share_router
 from backend.api.routes.sources import router as sources_router
-from backend.config import ALLOWED_ORIGINS
+from backend.config import ALLOWED_ORIGINS, LOCALHOST_ORIGIN_REGEX
 
 
 class JsonFormatter(logging.Formatter):
@@ -46,6 +46,7 @@ app.state.conversation_histories = {}
 app.add_middleware(
 	CORSMiddleware,
 	allow_origins=list(ALLOWED_ORIGINS),
+	allow_origin_regex=LOCALHOST_ORIGIN_REGEX,
 	allow_credentials=True,
 	allow_methods=["*"],
 	allow_headers=["*"],

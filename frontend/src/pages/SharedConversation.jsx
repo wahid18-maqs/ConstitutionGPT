@@ -19,18 +19,18 @@ export default function SharedConversation() {
   }, [shareId]);
 
   return (
-    <div className="flex min-h-screen bg-cream">
+    <div className="flex min-h-screen bg-base">
       <div className="flex-1 px-6 py-6">
         <div className="mx-auto max-w-2xl">
           <div className="mb-4 flex items-center justify-between">
-            <h1 className="text-lg font-semibold text-navy">Shared conversation</h1>
-            <Link to="/chat" className="text-sm text-navy underline">
+            <h1 className="text-lg font-semibold text-heading">Shared conversation</h1>
+            <Link to="/chat" className="text-sm text-gold underline">
               Open ConstituteAI
             </Link>
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          {!error && !messages && <p className="text-sm text-navy/50">Loading…</p>}
+          {error && <p className="text-sm text-red-400">{error}</p>}
+          {!error && !messages && <p className="text-sm text-muted">Loading…</p>}
 
           <div className="space-y-4">
             {messages?.map((message) => (

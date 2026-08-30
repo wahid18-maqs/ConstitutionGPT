@@ -25,6 +25,7 @@ export default function Chat() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
   const [activeCitation, setActiveCitation] = useState(null);
+  const [activeTopic, setActiveTopic] = useState(null);
   const [language, setLanguage] = useState("en");
   const [shareStatus, setShareStatus] = useState(null);
   const searchInputRef = useRef(null);
@@ -60,6 +61,7 @@ export default function Chat() {
     setSearchValue("");
     setError(null);
     setActiveCitation(null);
+    setActiveTopic(null);
     setConversationId(crypto.randomUUID());
     setSearchParams({});
   }
@@ -115,8 +117,9 @@ export default function Chat() {
     searchInputRef.current?.focus();
   }
 
-  function handleTopicSelect(query) {
-    sendMessage(query);
+  function handleTopicSelect(item) {
+    setActiveTopic(item.label);
+    sendMessage(item.query);
   }
 
   async function handleShare() {
@@ -135,8 +138,13 @@ export default function Chat() {
   }
 
   return (
-    <div className="flex h-screen bg-cream">
-      <Sidebar onNewChat={handleNewChat} onFocusSearch={handleFocusSearch} onTopicSelect={handleTopicSelect} />
+    <div className="flex h-screen bg-base">
+      <Sidebar
+        onNewChat={handleNewChat}
+        onFocusSearch={handleFocusSearch}
+        onTopicSelect={handleTopicSelect}
+        activeTopic={activeTopic}
+      />
 
       <div className="flex flex-1 flex-col">
         <TopBar
@@ -151,9 +159,9 @@ export default function Chat() {
           shareStatus={shareStatus}
         />
 
-        <main className="flex-1 space-y-4 overflow-y-auto px-6 py-6">
+        <main className="flex-1 space-y-6 overflow-y-auto p-6">
           {messages.length === 0 ? (
-            <p className="text-sm text-navy/50">
+            <p className="text-sm text-muted">
               Ask a question about the Constitution to get started.
             </p>
           ) : (
@@ -161,23 +169,23 @@ export default function Chat() {
               <MessageBubble key={message.id} {...message} onCitationClick={setActiveCitation} />
             ))
           )}
-          {sending && <p className="text-sm text-navy/50">Thinking…</p>}
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {sending && <p className="text-sm text-muted">Thinking…</p>}
+          {error && <p className="text-sm text-red-400">{error}</p>}
         </main>
 
-        <form onSubmit={handleDraftSubmit} className="flex gap-2 border-t border-navy/10 bg-white px-6 py-4">
+        <form onSubmit={handleDraftSubmit} className="flex gap-2 border-t border-border bg-base px-6 py-4">
           <input
             type="text"
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             placeholder="Type your question…"
             disabled={sending}
-            className="flex-1 rounded-full border border-navy/20 px-4 py-2 text-sm focus:border-navy focus:outline-none disabled:opacity-60"
+            className="flex-1 rounded-xl border border-border bg-panel px-4 py-2 text-sm text-heading placeholder-muted focus:border-gold focus:outline-none disabled:opacity-60"
           />
           <button
             type="submit"
             disabled={sending}
-            className="rounded-full bg-amber px-5 py-2 text-sm font-semibold text-white transition hover:bg-amber/90 disabled:opacity-60"
+            className="rounded-xl bg-gold-gradient px-5 py-2 text-sm font-medium text-base transition hover:opacity-95 disabled:opacity-60"
           >
             Send
           </button>

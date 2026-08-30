@@ -4,14 +4,23 @@ export default {
   theme: {
     extend: {
       colors: {
-        navy: {
-          DEFAULT: "#1E3A8A",
-          dark: "#152a63",
+        base: "#0B0F17",
+        panel: "#111827",
+        border: {
+          DEFAULT: "#1F2937",
+          strong: "#374151",
         },
-        cream: "#FBF7F0",
-        amber: {
-          DEFAULT: "#D97706",
+        gold: {
+          DEFAULT: "#C5A880",
+          dark: "#B39369",
         },
+        heading: "#F3F4F6",
+        body: "#E2E8F0",
+        "body-muted": "#D1D5DB",
+        muted: "#9CA3AF",
+      },
+      backgroundImage: {
+        "gold-gradient": "linear-gradient(135deg, #C5A880, #B39369)",
       },
     },
   },

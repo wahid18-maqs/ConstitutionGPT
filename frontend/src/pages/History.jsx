@@ -20,19 +20,19 @@ export default function History() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-cream px-6 py-6">
+    <div className="min-h-screen bg-base px-6 py-6">
       <div className="mx-auto max-w-2xl">
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-lg font-semibold text-navy">Conversation history</h1>
-          <Link to="/chat" className="text-sm text-navy underline">
+          <h1 className="text-lg font-semibold text-heading">Conversation history</h1>
+          <Link to="/chat" className="text-sm text-gold underline">
             Back to chat
           </Link>
         </div>
 
-        {loading && <p className="text-sm text-navy/50">Loading…</p>}
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {loading && <p className="text-sm text-muted">Loading…</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
         {!loading && !error && conversations.length === 0 && (
-          <p className="text-sm text-navy/50">No conversations yet.</p>
+          <p className="text-sm text-muted">No conversations yet.</p>
         )}
 
         <ul className="space-y-2">
@@ -40,11 +40,11 @@ export default function History() {
             <li key={conversation.id}>
               <Link
                 to={`/chat?conversation=${conversation.id}`}
-                className="block rounded-md border border-navy/10 bg-white px-4 py-3 text-sm text-navy transition hover:border-navy/30"
+                className="block rounded-lg border border-border bg-panel px-4 py-3 text-sm text-body transition hover:border-gold/50"
               >
-                <p className="font-medium">{conversation.title || "Untitled conversation"}</p>
+                <p className="font-medium text-heading">{conversation.title || "Untitled conversation"}</p>
                 {conversation.updated_at && (
-                  <p className="mt-1 text-xs text-navy/50">
+                  <p className="mt-1 text-xs text-muted">
                     {new Date(conversation.updated_at).toLocaleString()}
                   </p>
                 )}

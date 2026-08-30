@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
+import { Landmark } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
@@ -42,14 +43,17 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-cream px-4">
-      <div className="w-full max-w-sm rounded-lg bg-white p-8 shadow-sm">
-        <h1 className="text-center text-2xl font-semibold text-navy">ConstituteAI</h1>
-        <p className="mt-1 text-center text-sm text-navy/60">
+    <div className="flex min-h-screen items-center justify-center bg-base px-4">
+      <div className="w-full max-w-sm rounded-2xl border border-border bg-panel p-8 shadow-2xl">
+        <div className="flex items-center justify-center gap-2">
+          <Landmark size={22} className="text-gold" />
+          <h1 className="text-center text-2xl font-semibold text-heading">ConstituteAI</h1>
+        </div>
+        <p className="mt-1 text-center text-sm text-muted">
           Constitutional research assistant
         </p>
 
-        <div className="mt-6 flex rounded-md bg-cream p-1 text-sm font-medium">
+        <div className="mt-6 flex rounded-lg border border-border bg-base p-1 text-sm font-medium">
           <button
             type="button"
             onClick={() => {
@@ -58,7 +62,7 @@ export default function Login() {
               setCheckEmail(false);
             }}
             className={`flex-1 rounded py-1.5 transition ${
-              mode === "signin" ? "bg-white text-navy shadow-sm" : "text-navy/60"
+              mode === "signin" ? "bg-panel text-heading shadow-sm" : "text-muted"
             }`}
           >
             Sign in
@@ -71,7 +75,7 @@ export default function Login() {
               setCheckEmail(false);
             }}
             className={`flex-1 rounded py-1.5 transition ${
-              mode === "signup" ? "bg-white text-navy shadow-sm" : "text-navy/60"
+              mode === "signup" ? "bg-panel text-heading shadow-sm" : "text-muted"
             }`}
           >
             Sign up
@@ -79,13 +83,13 @@ export default function Login() {
         </div>
 
         {checkEmail ? (
-          <p className="mt-6 rounded-md bg-amber/10 p-3 text-sm text-navy">
+          <p className="mt-6 rounded-md bg-gold/10 p-3 text-sm text-body">
             Check your email to confirm your account, then sign in.
           </p>
         ) : (
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-navy">
+              <label htmlFor="email" className="block text-sm font-medium text-heading">
                 Email
               </label>
               <input
@@ -94,11 +98,11 @@ export default function Login() {
                 required
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="mt-1 w-full rounded-md border border-navy/20 px-3 py-2 text-sm focus:border-navy focus:outline-none"
+                className="mt-1 w-full rounded-md border border-border bg-base px-3 py-2 text-sm text-heading focus:border-gold focus:outline-none"
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-navy">
+              <label htmlFor="password" className="block text-sm font-medium text-heading">
                 Password
               </label>
               <input
@@ -108,16 +112,16 @@ export default function Login() {
                 minLength={6}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                className="mt-1 w-full rounded-md border border-navy/20 px-3 py-2 text-sm focus:border-navy focus:outline-none"
+                className="mt-1 w-full rounded-md border border-border bg-base px-3 py-2 text-sm text-heading focus:border-gold focus:outline-none"
               />
             </div>
 
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm text-red-400">{error}</p>}
 
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded-full bg-amber py-2 text-sm font-semibold text-white transition hover:bg-amber/90 disabled:opacity-60"
+              className="w-full rounded-full bg-gold-gradient py-2 text-sm font-semibold text-base transition hover:opacity-95 disabled:opacity-60"
             >
               {submitting ? "Please wait…" : mode === "signin" ? "Sign in" : "Sign up"}
             </button>
