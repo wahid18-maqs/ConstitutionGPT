@@ -19,3 +19,13 @@ class SourceResponse(BaseModel):
 	source_type: str
 	related_provisions: list[str] = Field(default_factory=list)
 	related_cases: list[str] = Field(default_factory=list)
+
+
+class ArticleGroupResponse(BaseModel):
+	"""Powers the sidebar's Fundamental Rights / Directive Principles
+	sub-menus (Ui updates and features.md 2.2 A1) — a curated, named group
+	of articles rendered as multiple stacked Source Explorer blocks."""
+
+	category: str
+	label: str
+	sources: list[SourceResponse] = Field(default_factory=list)

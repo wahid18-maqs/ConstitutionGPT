@@ -47,7 +47,7 @@ export default function Login() {
       <div className="w-full max-w-sm rounded-2xl border border-border bg-panel p-8 shadow-2xl">
         <div className="flex items-center justify-center gap-2">
           <Landmark size={22} className="text-gold" />
-          <h1 className="text-center text-2xl font-semibold text-heading">ConstituteAI</h1>
+          <h1 className="text-center text-2xl font-semibold text-heading">SamvidhanAI</h1>
         </div>
         <p className="mt-1 text-center text-sm text-muted">
           Constitutional research assistant

@@ -4,6 +4,8 @@ Anonymous access is fine here — Section 8.2 lists read-only reference
 lookups as not needing an account.
 """
 
+from typing import Optional
+
 from fastapi import APIRouter, HTTPException
 
 from backend.case_law import CASE_METADATA
@@ -35,8 +37,11 @@ def _get_service() -> PineconeService:
 	return _service
 
 
-@router.get("/api/source/{source_id}", response_model=SourceResponse)
-def get_source(source_id: str):
+def _build_source_response(source_id: str) -> Optional[SourceResponse]:
+	"""Shared lookup used by both the single-source route below and the
+	multi-article /api/articles route (Ui updates and features.md 2.2 A1) —
+	returns None on no match instead of raising, so a category lookup can
+	skip a missing article rather than fail wholesale."""
 	if source_id.startswith("article_"):
 		article = source_id.removeprefix("article_")
 		metadata_filter = {"article": {"$eq": article}, "document_type": {"$eq": "constitution"}}
@@ -50,7 +55,7 @@ def get_source(source_id: str):
 	)
 	hits = hits_from_response(response)
 	if not hits:
-		raise HTTPException(status_code=404, detail="Source not found")
+		return None
 
 	fields = hits[0].get("fields", {})
 	combined_text = "\n\n".join(hit.get("fields", {}).get("text", "") for hit in hits)
@@ -67,3 +72,11 @@ def get_source(source_id: str):
 		related_provisions=[],
 		related_cases=_related_cases_for_article(article_number) if article_number else [],
 	)
+
+
+@router.get("/api/source/{source_id}", response_model=SourceResponse)
+def get_source(source_id: str):
+	source = _build_source_response(source_id)
+	if source is None:
+		raise HTTPException(status_code=404, detail="Source not found")
+	return source

@@ -1,1 +1,1 @@
-/** Cases page placeholder for ConstituteAI. */
+/** Cases page placeholder for SamvidhanAI. */

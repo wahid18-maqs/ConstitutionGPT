@@ -1,4 +1,4 @@
-/** FastAPI client for ConstituteAI — attaches the current Supabase session's
+/** FastAPI client for SamvidhanAI — attaches the current Supabase session's
  * access token as a Bearer header, per instructions_refactor.md Section 8.2
  * ("Every request from frontend to FastAPI attaches the Supabase session's
  * access token"). */
@@ -63,6 +63,24 @@ export function getHistory(conversationId) {
 /** GET /api/source/{source_id} — anonymous, no auth needed (Section 8.2). */
 export function getSource(sourceId) {
   return anonymousFetch(`/api/source/${encodeURIComponent(sourceId)}`);
+}
+
+/** GET /api/articles?category=... — anonymous; a named Fundamental Rights
+ * or Directive Principles article group (Ui updates and features.md 2.2 A1). */
+export function getArticleGroup(category) {
+  return anonymousFetch(`/api/articles?category=${encodeURIComponent(category)}`);
+}
+
+/** GET /api/cases — anonymous; the actually-indexed landmark judgments
+ * (Ui updates and features.md 2.2 B2's Case Studies sub-menu). */
+export function getCases() {
+  return anonymousFetch("/api/cases");
+}
+
+/** GET /api/search?q=... — anonymous; ranked results list across the
+ * whole corpus (Ui updates and features.md 2.2 B1's Search by Topic). */
+export function search(query) {
+  return anonymousFetch(`/api/search?q=${encodeURIComponent(query)}`);
 }
 
 /** POST /api/feedback — thumbs up/down on one assistant message. */

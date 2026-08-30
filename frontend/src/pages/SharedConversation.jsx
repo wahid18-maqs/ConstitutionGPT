@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import MessageBubble from "../components/MessageBubble";
 import SourceExplorer from "../components/SourceExplorer";
-import { getSharedConversation } from "../services/api";
+import { getSharedConversation, getSource } from "../services/api";
 
 /** Public, anonymous view of a shared conversation (Section 8.3: resolved
  * server-side via the service-role client, no auth required to view). */
@@ -10,7 +10,14 @@ export default function SharedConversation() {
   const { shareId } = useParams();
   const [messages, setMessages] = useState(null);
   const [error, setError] = useState(null);
-  const [activeCitation, setActiveCitation] = useState(null);
+  const [explorerRequest, setExplorerRequest] = useState(null);
+
+  function handleCitationClick(citation) {
+    setExplorerRequest({
+      title: citation.label,
+      load: () => getSource(citation.source_id).then((source) => ({ title: citation.label, sources: [source] })),
+    });
+  }
 
   useEffect(() => {
     getSharedConversation(shareId)
@@ -25,7 +32,7 @@ export default function SharedConversation() {
           <div className="mb-4 flex items-center justify-between">
             <h1 className="text-lg font-semibold text-heading">Shared conversation</h1>
             <Link to="/chat" className="text-sm text-gold underline">
-              Open ConstituteAI
+              Open SamvidhanAI
             </Link>
           </div>
 
@@ -39,15 +46,15 @@ export default function SharedConversation() {
                 {...message}
                 keyClauses={message.key_clauses}
                 readOnly
-                onCitationClick={setActiveCitation}
+                onCitationClick={handleCitationClick}
               />
             ))}
           </div>
         </div>
       </div>
 
-      {activeCitation && (
-        <SourceExplorer citation={activeCitation} onClose={() => setActiveCitation(null)} />
+      {explorerRequest && (
+        <SourceExplorer request={explorerRequest} onClose={() => setExplorerRequest(null)} />
       )}
     </div>
   );

@@ -1,4 +1,4 @@
-/** Supabase client for ConstituteAI — anon/public key, client-side auth only.
+/** Supabase client for SamvidhanAI — anon/public key, client-side auth only.
  *
  * Per instructions_refactor.md Section 8.2, the frontend talks to Supabase
  * Auth directly (signUp/signInWithPassword/signOut/onAuthStateChange) rather

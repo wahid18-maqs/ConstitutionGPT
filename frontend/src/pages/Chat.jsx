@@ -4,7 +4,7 @@ import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
 import MessageBubble from "../components/MessageBubble";
 import SourceExplorer from "../components/SourceExplorer";
-import { getHistory, postChat, postShare } from "../services/api";
+import { getArticleGroup, getCases, getHistory, getSource, postChat, postShare, search } from "../services/api";
 
 /**
  * Chat interface wired to the real Pinecone-backed /api/chat endpoint.
@@ -24,8 +24,7 @@ export default function Chat() {
   );
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
-  const [activeCitation, setActiveCitation] = useState(null);
-  const [activeTopic, setActiveTopic] = useState(null);
+  const [explorerRequest, setExplorerRequest] = useState(null);
   const [language, setLanguage] = useState("en");
   const [shareStatus, setShareStatus] = useState(null);
   const searchInputRef = useRef(null);
@@ -60,8 +59,7 @@ export default function Chat() {
     setDraft("");
     setSearchValue("");
     setError(null);
-    setActiveCitation(null);
-    setActiveTopic(null);
+    setExplorerRequest(null);
     setConversationId(crypto.randomUUID());
     setSearchParams({});
   }
@@ -113,13 +111,44 @@ export default function Chat() {
     sendMessage(label);
   }
 
-  function handleFocusSearch() {
-    searchInputRef.current?.focus();
+  // Sidebar sub-item handlers (Ui updates and features.md 2.2 A1/B2) — each
+  // opens the Source Explorer against a different backend shape, but the
+  // panel itself only ever sees a { title, sources } loader (see
+  // SourceExplorer.jsx), so none of this needs a new panel component.
+  function handleCategorySelect(categoryKey, label) {
+    setExplorerRequest({
+      title: label,
+      load: () => getArticleGroup(categoryKey).then((data) => ({ title: data.label, sources: data.sources })),
+    });
   }
 
-  function handleTopicSelect(item) {
-    setActiveTopic(item.label);
-    sendMessage(item.query);
+  function handleCasesSelect() {
+    setExplorerRequest({
+      title: "Landmark Judgments",
+      load: () => getCases().then((data) => ({ title: data.label, sources: data.sources })),
+    });
+  }
+
+  function handleArticleNumber(number) {
+    const label = `Article ${number}`;
+    setExplorerRequest({
+      title: label,
+      load: () => getSource(`article_${number}`).then((source) => ({ title: label, sources: [source] })),
+    });
+  }
+
+  function handleTopicSearch(query) {
+    setExplorerRequest({
+      title: `Search: ${query}`,
+      load: () => search(query).then((data) => ({ title: `Search: ${data.query}`, results: data.results })),
+    });
+  }
+
+  function handleCitationClick(citation) {
+    setExplorerRequest({
+      title: citation.label,
+      load: () => getSource(citation.source_id).then((source) => ({ title: citation.label, sources: [source] })),
+    });
   }
 
   async function handleShare() {
@@ -141,9 +170,10 @@ export default function Chat() {
     <div className="flex h-screen bg-base">
       <Sidebar
         onNewChat={handleNewChat}
-        onFocusSearch={handleFocusSearch}
-        onTopicSelect={handleTopicSelect}
-        activeTopic={activeTopic}
+        onCategorySelect={handleCategorySelect}
+        onCasesSelect={handleCasesSelect}
+        onArticleNumber={handleArticleNumber}
+        onTopicSearch={handleTopicSearch}
       />
 
       <div className="flex flex-1 flex-col">
@@ -166,7 +196,7 @@ export default function Chat() {
             </p>
           ) : (
             messages.map((message) => (
-              <MessageBubble key={message.id} {...message} onCitationClick={setActiveCitation} />
+              <MessageBubble key={message.id} {...message} onCitationClick={handleCitationClick} />
             ))
           )}
           {sending && <p className="text-sm text-muted">Thinking…</p>}
@@ -192,8 +222,8 @@ export default function Chat() {
         </form>
       </div>
 
-      {activeCitation && (
-        <SourceExplorer citation={activeCitation} onClose={() => setActiveCitation(null)} />
+      {explorerRequest && (
+        <SourceExplorer request={explorerRequest} onClose={() => setExplorerRequest(null)} />
       )}
     </div>
   );

@@ -9,9 +9,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from backend.api.routes.articles import router as articles_router
 from backend.api.routes.auth import router as auth_router
+from backend.api.routes.cases import router as cases_router
 from backend.api.routes.chat import router as chat_router
 from backend.api.routes.feedback import router as feedback_router
+from backend.api.routes.search import router as search_router
 from backend.api.routes.share import router as share_router
 from backend.api.routes.sources import router as sources_router
 from backend.config import ALLOWED_ORIGINS, LOCALHOST_ORIGIN_REGEX
@@ -51,9 +54,12 @@ app.add_middleware(
 	allow_methods=["*"],
 	allow_headers=["*"],
 )
+app.include_router(articles_router)
 app.include_router(auth_router)
+app.include_router(cases_router)
 app.include_router(chat_router)
 app.include_router(feedback_router)
+app.include_router(search_router)
 app.include_router(share_router)
 app.include_router(sources_router)
 

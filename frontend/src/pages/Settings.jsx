@@ -1,1 +1,1 @@
-/** Settings page placeholder for ConstituteAI. */
+/** Settings page placeholder for SamvidhanAI. */

@@ -1,1 +1,1 @@
-/** Search page placeholder for ConstituteAI. */
+/** Search page placeholder for SamvidhanAI. */
