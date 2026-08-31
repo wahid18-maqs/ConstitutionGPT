@@ -1,0 +1,194 @@
+[
+  {
+    "id": "q01",
+    "question": "What is Article 1 of the Constitution of India?",
+    "expected_source_ids": ["article_1"],
+    "category": "explicit-article"
+  },
+  {
+    "id": "q02",
+    "question": "What does Article 2 provide for?",
+    "expected_source_ids": ["article_2"],
+    "category": "explicit-article"
+  },
+  {
+    "id": "q03",
+    "question": "Explain the territorial changes covered by Article 3.",
+    "expected_source_ids": ["article_3"],
+    "category": "explicit-article"
+  },
+  {
+    "id": "q04",
+    "question": "What does Article 4 say about laws made under Articles 2 and 3?",
+    "expected_source_ids": ["article_4"],
+    "category": "explicit-article"
+  },
+  {
+    "id": "q05",
+    "question": "Who qualified for citizenship under Article 5?",
+    "expected_source_ids": ["article_5"],
+    "category": "explicit-article"
+  },
+  {
+    "id": "q06",
+    "question": "What is the constitutional meaning of State under Article 12?",
+    "expected_source_ids": ["article_12"],
+    "category": "explicit-article"
+  },
+  {
+    "id": "q07",
+    "question": "What does Article 14 guarantee?",
+    "expected_source_ids": ["article_14"],
+    "category": "explicit-article"
+  },
+  {
+    "id": "q08",
+    "question": "What freedoms are protected by Article 19?",
+    "expected_source_ids": ["article_19"],
+    "category": "explicit-article"
+  },
+  {
+    "id": "q09",
+    "question": "What is the protection against conviction under Article 20?",
+    "expected_source_ids": ["article_20"],
+    "category": "explicit-article"
+  },
+  {
+    "id": "q10",
+    "question": "What is the right to life and personal liberty under Article 21?",
+    "expected_source_ids": ["article_21"],
+    "category": "explicit-article"
+  },
+  {
+    "id": "q11",
+    "question": "What remedies are available under Article 32?",
+    "expected_source_ids": ["article_32"],
+    "category": "explicit-article"
+  },
+  {
+    "id": "q12",
+    "question": "What is the purpose of Article 44?",
+    "expected_source_ids": ["article_44"],
+    "category": "explicit-article"
+  },
+  {
+    "id": "q13",
+    "question": "What constitutional offices are addressed by Article 51?",
+    "expected_source_ids": ["article_51"],
+    "category": "explicit-article"
+  },
+  {
+    "id": "q14",
+    "question": "What does Article 72 say about the President's pardoning power?",
+    "expected_source_ids": ["article_72"],
+    "category": "explicit-article"
+  },
+  {
+    "id": "q15",
+    "question": "What does Article 123 authorize the President to promulgate?",
+    "expected_source_ids": ["article_123"],
+    "category": "explicit-article"
+  },
+  {
+    "id": "q16",
+    "question": "What procedure is provided by Article 370?",
+    "expected_source_ids": ["article_370"],
+    "category": "explicit-article"
+  },
+  {
+    "id": "q17",
+    "question": "Can the state deprive someone of life or personal liberty without following a lawful procedure?",
+    "expected_source_ids": ["article_21"],
+    "category": "conceptual"
+  },
+  {
+    "id": "q18",
+    "question": "Does the Constitution promise equal treatment before the law?",
+    "expected_source_ids": ["article_14"],
+    "category": "conceptual"
+  },
+  {
+    "id": "q19",
+    "question": "What protection exists against being punished twice for the same offence?",
+    "expected_source_ids": ["article_20"],
+    "category": "conceptual"
+  },
+  {
+    "id": "q20",
+    "question": "Which constitutional remedy lets a person approach the Supreme Court to enforce fundamental rights?",
+    "expected_source_ids": ["article_32"],
+    "category": "conceptual"
+  },
+  {
+    "id": "q21",
+    "question": "Can citizens be denied access to public places because of religion, race, caste, sex, or birthplace?",
+    "expected_source_ids": ["article_15"],
+    "category": "conceptual"
+  },
+  {
+    "id": "q22",
+    "question": "What constitutional protection applies when a person is arrested and detained?",
+    "expected_source_ids": ["article_22"],
+    "category": "conceptual"
+  },
+  {
+    "id": "q23",
+    "question": "Does the Constitution prohibit forced labour and trafficking in human beings?",
+    "expected_source_ids": ["article_23"],
+    "category": "conceptual"
+  },
+  {
+    "id": "q24",
+    "question": "What freedom protects a person's ability to speak and express opinions?",
+    "expected_source_ids": ["article_19"],
+    "category": "conceptual"
+  },
+  {
+    "id": "q25",
+    "question": "Can the government require children to receive free and compulsory education?",
+    "expected_source_ids": ["article_21A"],
+    "category": "conceptual"
+  },
+  {
+    "id": "q26",
+    "question": "What constitutional principle supports a common civil code for citizens?",
+    "expected_source_ids": ["article_44"],
+    "category": "conceptual"
+  },
+  {
+    "id": "q27",
+    "question": "Who has constitutional authority to grant pardons or commute sentences?",
+    "expected_source_ids": ["article_72"],
+    "category": "conceptual"
+  },
+  {
+    "id": "q28",
+    "question": "Under what circumstances may the Union executive issue an ordinance when Parliament is not in session?",
+    "expected_source_ids": ["article_123"],
+    "category": "conceptual"
+  },
+  {
+    "id": "q29",
+    "question": "What did the Supreme Court hold about Article 21 in Maneka Gandhi v. Union of India?",
+    "expected_source_ids": ["maneka_gandhi_1978"],
+    "category": "case-law"
+  },
+  {
+    "id": "q30",
+    "question": "Why did Maneka Gandhi's impounded passport raise a natural justice question?",
+    "expected_source_ids": ["maneka_gandhi_1978"],
+    "category": "case-law"
+  },
+  {
+    "id": "q31",
+    "question": "What did the Court strike down in Shreya Singhal v. Union of India and why?",
+    "expected_source_ids": ["shreya_singhal_2015"],
+    "category": "case-law"
+  },
+  {
+    "id": "q32",
+    "question": "How did Shreya Singhal's judgment address Section 66A of the Information Technology Act?",
+    "expected_source_ids": ["shreya_singhal_2015"],
+    "category": "case-law"
+  }
+]

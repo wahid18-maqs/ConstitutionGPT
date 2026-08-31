@@ -1,0 +1,140 @@
+[
+  {
+    "id": "g01",
+    "question": "What does Article 14 guarantee?",
+    "expected_source_ids": ["article_14"],
+    "expected_key_facts": [
+      "The State shall not deny to any person equality before the law",
+      "The State shall not deny to any person the equal protection of the laws",
+      "This protection applies within the territory of India"
+    ],
+    "golden_answer": null,
+    "category": "explicit-article"
+  },
+  {
+    "id": "g02",
+    "question": "What freedoms are protected by Article 19?",
+    "expected_source_ids": ["article_19"],
+    "expected_key_facts": [
+      "All citizens have the right to freedom of speech and expression",
+      "All citizens have the right to assemble peaceably and without arms",
+      "All citizens have the right to form associations or unions",
+      "All citizens have the right to move freely throughout the territory of India"
+    ],
+    "golden_answer": null,
+    "category": "explicit-article"
+  },
+  {
+    "id": "g03",
+    "question": "What is the right to life and personal liberty under Article 21?",
+    "expected_source_ids": ["article_21"],
+    "expected_key_facts": [
+      "No person shall be deprived of his life or personal liberty",
+      "Deprivation is only allowed according to procedure established by law"
+    ],
+    "golden_answer": null,
+    "category": "explicit-article"
+  },
+  {
+    "id": "g04",
+    "question": "What remedies are available under Article 32?",
+    "expected_source_ids": ["article_32"],
+    "expected_key_facts": [
+      "Article 32 guarantees the right to move the Supreme Court to enforce fundamental rights",
+      "The Supreme Court has the power to issue directions, orders, or writs for enforcing fundamental rights"
+    ],
+    "golden_answer": null,
+    "category": "explicit-article"
+  },
+  {
+    "id": "g05",
+    "question": "What does Article 72 say about the President's pardoning power?",
+    "expected_source_ids": ["article_72"],
+    "expected_key_facts": [
+      "The President has the power to grant pardons, reprieves, respites, or remissions of punishment",
+      "The President can suspend, remit, or commute the sentence of a person convicted of an offence"
+    ],
+    "golden_answer": null,
+    "category": "explicit-article"
+  },
+  {
+    "id": "g06",
+    "question": "Can the state deprive someone of life or personal liberty without following a lawful procedure?",
+    "expected_source_ids": ["article_21"],
+    "expected_key_facts": [
+      "No, the state cannot deprive a person of life or personal liberty except according to procedure established by law",
+      "Article 21 protects life and personal liberty"
+    ],
+    "golden_answer": null,
+    "category": "conceptual"
+  },
+  {
+    "id": "g07",
+    "question": "Does the Constitution promise equal treatment before the law?",
+    "expected_source_ids": ["article_14"],
+    "expected_key_facts": [
+      "Yes, Article 14 guarantees equality before the law",
+      "Article 14 also guarantees equal protection of the laws"
+    ],
+    "golden_answer": null,
+    "category": "conceptual"
+  },
+  {
+    "id": "g08",
+    "question": "Which constitutional remedy lets a person approach the Supreme Court to enforce fundamental rights?",
+    "expected_source_ids": ["article_32"],
+    "expected_key_facts": [
+      "Article 32 lets a person move the Supreme Court directly to enforce fundamental rights",
+      "The Supreme Court can issue writs to enforce fundamental rights"
+    ],
+    "golden_answer": null,
+    "category": "conceptual"
+  },
+  {
+    "id": "g09",
+    "question": "What freedom protects a person's ability to speak and express opinions?",
+    "expected_source_ids": ["article_19"],
+    "expected_key_facts": [
+      "Article 19(1)(a) protects freedom of speech and expression",
+      "This is one of the freedoms guaranteed to all citizens under Article 19"
+    ],
+    "golden_answer": null,
+    "category": "conceptual"
+  },
+  {
+    "id": "g10",
+    "question": "What did the Supreme Court hold about Article 21 in Maneka Gandhi v. Union of India?",
+    "expected_source_ids": ["maneka_gandhi_1978"],
+    "expected_key_facts": [
+      "The Court held that the procedure depriving someone of life or personal liberty must be fair, just, and reasonable",
+      "Articles 14, 19, and 21 must be read together, not as isolated provisions",
+      "The case overturned the narrower reading of Article 21 from A.K. Gopalan (1950)"
+    ],
+    "golden_answer": null,
+    "category": "case-law"
+  },
+  {
+    "id": "g11",
+    "question": "Why did Maneka Gandhi's impounded passport raise a natural justice question?",
+    "expected_source_ids": ["maneka_gandhi_1978"],
+    "expected_key_facts": [
+      "Maneka Gandhi's passport was impounded without being told the reasons",
+      "She was not given a hearing or an opportunity to be heard before the passport was impounded",
+      "This raised the question of whether the procedure followed was fair under Article 21"
+    ],
+    "golden_answer": null,
+    "category": "case-law"
+  },
+  {
+    "id": "g12",
+    "question": "What did the Court strike down in Shreya Singhal v. Union of India and why?",
+    "expected_source_ids": ["shreya_singhal_2015"],
+    "expected_key_facts": [
+      "The Court struck down Section 66A of the Information Technology Act",
+      "Section 66A was struck down as unconstitutional for violating Article 19(1)(a), freedom of speech and expression",
+      "Section 66A's vague and undefined terms had a chilling effect on free speech"
+    ],
+    "golden_answer": null,
+    "category": "case-law"
+  }
+]

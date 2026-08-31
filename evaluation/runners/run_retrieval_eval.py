@@ -19,7 +19,7 @@ import sys
 import time
 from typing import Any, Optional
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from backend.config import PINECONE_NAMESPACE, RERANK_ENABLED
 from backend.graph.nodes.analyzer import analyze_query
@@ -28,8 +28,8 @@ from backend.graph.nodes.retrieval import retrieve
 from backend.rag.retriever import PineconeRetriever, create_retriever
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-QUESTIONS_PATH = PROJECT_ROOT / "data" / "evaluation" / "questions.json"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+QUESTIONS_PATH = PROJECT_ROOT / "evaluation" / "datasets" / "retrieval_questions.json"
 METADATA_PATH = PROJECT_ROOT / "data" / "processed" / "metadata"
 
 

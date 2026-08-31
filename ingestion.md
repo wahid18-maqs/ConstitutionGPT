@@ -56,8 +56,8 @@ For each case, once source text is in hand:
    warns that a `CASE_METADATA` entry with no indexed content silently
    breaks the Source Explorer's related-cases reverse lookup.
 7. Add at least one benchmark question to
-   `data/evaluation/questions.json` for the newly-ingested case (per
-   `KNOWN_ISSUES.md`'s eval-coverage note).
+   `evaluation/datasets/retrieval_questions.json` for the newly-ingested
+   case (per `KNOWN_ISSUES.md`'s eval-coverage note).
 
 ## Notes on the specific list
 
