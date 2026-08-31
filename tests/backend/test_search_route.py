@@ -70,5 +70,31 @@ class SearchRouteTests(unittest.TestCase):
 		self.assertTrue(snippet.endswith("…"))
 
 
+class FulltextSearchRouteTests(unittest.TestCase):
+	def setUp(self):
+		self.client = TestClient(app, raise_server_exceptions=False)
+
+	def test_empty_query_is_rejected(self):
+		response = self.client.get("/api/search/fulltext", params={"q": " "})
+		self.assertEqual(response.status_code, 400)
+
+	def test_results_are_deduped_and_windowed_around_the_match(self):
+		long_text = ("padding " * 40) + "the chilling effect on speech" + (" more padding" * 40)
+		with patch(
+			"backend.api.routes.search.supabase_service.search_fulltext",
+			return_value=[
+				{"source_id": "shreya_singhal_2015", "label": "Shreya Singhal v. Union of India", "document_type": "case_law", "chunk_text": long_text},
+				{"source_id": "shreya_singhal_2015", "label": "Shreya Singhal v. Union of India", "document_type": "case_law", "chunk_text": "a second chunk from the same case"},
+			],
+		):
+			response = self.client.get("/api/search/fulltext", params={"q": "chilling effect"})
+		self.assertEqual(response.status_code, 200)
+		body = response.json()
+		self.assertEqual(len(body["results"]), 1)  # deduped by source_id
+		self.assertIn("chilling effect", body["results"][0]["snippet"])
+		self.assertLess(len(body["results"][0]["snippet"]), len(long_text))
+		self.assertIsNone(body["results"][0]["score"])  # literal match, no relevance score
+
+
 if __name__ == "__main__":
 	unittest.main()

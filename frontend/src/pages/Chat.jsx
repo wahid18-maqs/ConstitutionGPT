@@ -4,7 +4,17 @@ import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
 import MessageBubble from "../components/MessageBubble";
 import SourceExplorer from "../components/SourceExplorer";
-import { getArticleGroup, getCases, getHistory, getSource, postChat, postShare, search } from "../services/api";
+import {
+  getArticleGroup,
+  getCaseAnalyses,
+  getCases,
+  getHistory,
+  getSource,
+  postChat,
+  postShare,
+  search,
+  searchFulltext,
+} from "../services/api";
 
 /**
  * Chat interface wired to the real Pinecone-backed /api/chat endpoint.
@@ -144,6 +154,21 @@ export default function Chat() {
     });
   }
 
+  function handleFulltextSearch(query) {
+    setExplorerRequest({
+      title: `Full-Text: ${query}`,
+      load: () =>
+        searchFulltext(query).then((data) => ({ title: `Full-Text: ${data.query}`, results: data.results })),
+    });
+  }
+
+  function handleCaseAnalysis() {
+    setExplorerRequest({
+      title: "Case Analysis",
+      load: () => getCaseAnalyses().then((data) => ({ title: data.label, analyses: data.analyses })),
+    });
+  }
+
   function handleCitationClick(citation) {
     setExplorerRequest({
       title: citation.label,
@@ -174,6 +199,8 @@ export default function Chat() {
         onCasesSelect={handleCasesSelect}
         onArticleNumber={handleArticleNumber}
         onTopicSearch={handleTopicSearch}
+        onFulltextSearch={handleFulltextSearch}
+        onCaseAnalysis={handleCaseAnalysis}
       />
 
       <div className="flex flex-1 flex-col">

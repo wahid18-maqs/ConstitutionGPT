@@ -10,13 +10,16 @@ import { getSource } from "../services/api";
  *  - { title, sources }  — one or several full source blocks (citation
  *    click, Search by Number, Fundamental Rights/DPSP sub-items, Case
  *    Studies -> Landmark Judgments)
- *  - { title, results }  — a ranked snippet list (Search by Topic), each
- *    row expandable in place to its full source via getSource
+ *  - { title, results }  — a ranked/literal snippet list (Search by
+ *    Topic, Full-Text Search), each row expandable in place via getSource
+ *  - { title, analyses }  — static case-significance summaries (Case
+ *    Analysis), plain text blocks, nothing to expand
  */
 export default function SourceExplorer({ request, onClose }) {
   const [title, setTitle] = useState(request.title || "Source Explorer");
   const [sources, setSources] = useState(null);
   const [results, setResults] = useState(null);
+  const [analyses, setAnalyses] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -24,6 +27,7 @@ export default function SourceExplorer({ request, onClose }) {
     let active = true;
     setSources(null);
     setResults(null);
+    setAnalyses(null);
     setError(null);
     setLoading(true);
     setTitle(request.title || "Source Explorer");
@@ -34,6 +38,7 @@ export default function SourceExplorer({ request, onClose }) {
         setTitle(result.title || "Source Explorer");
         setSources(result.sources || null);
         setResults(result.results || null);
+        setAnalyses(result.analyses || null);
       })
       .catch((err) => active && setError(err.message || "Could not load this source."))
       .finally(() => active && setLoading(false));
@@ -42,7 +47,7 @@ export default function SourceExplorer({ request, onClose }) {
     };
   }, [request]);
 
-  const items = sources ?? results;
+  const items = sources ?? results ?? analyses;
 
   return (
     <aside className="flex h-screen w-96 shrink-0 flex-col border-l border-border bg-panel shadow-2xl">
@@ -75,6 +80,19 @@ export default function SourceExplorer({ request, onClose }) {
           <div className="space-y-2">
             {results.map((result) => (
               <ResultRow key={result.source_id} result={result} />
+            ))}
+          </div>
+        )}
+        {analyses?.length > 0 && (
+          <div className="space-y-5">
+            {analyses.map((item) => (
+              <div key={item.case_id}>
+                <p className="text-xs font-medium uppercase tracking-wide text-gold">
+                  {item.case_name}
+                  {item.year ? ` (${item.year})` : ""}
+                </p>
+                <p className="mt-1.5 whitespace-pre-wrap text-body">{item.analysis}</p>
+              </div>
             ))}
           </div>
         )}

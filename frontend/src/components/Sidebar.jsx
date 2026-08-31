@@ -79,10 +79,13 @@ export default function Sidebar({
   onCasesSelect,
   onArticleNumber,
   onTopicSearch,
+  onFulltextSearch,
+  onCaseAnalysis,
 }) {
   const [expanded, setExpanded] = useState(null); // which single group is open, or null
   const [articleNumber, setArticleNumber] = useState("");
   const [topicQuery, setTopicQuery] = useState("");
+  const [fulltextQuery, setFulltextQuery] = useState("");
 
   function toggle(name) {
     setExpanded((current) => (current === name ? null : name));
@@ -100,6 +103,13 @@ export default function Sidebar({
     const trimmed = topicQuery.trim();
     if (!trimmed) return;
     onTopicSearch(trimmed);
+  }
+
+  function submitFulltextSearch(event) {
+    event.preventDefault();
+    const trimmed = fulltextQuery.trim();
+    if (!trimmed) return;
+    onFulltextSearch(trimmed);
   }
 
   return (
@@ -157,7 +167,21 @@ export default function Sidebar({
               Go
             </button>
           </form>
-          <SubItem label="Full-Text Search" disabled />
+          <form onSubmit={submitFulltextSearch} className="flex gap-1.5 px-3 py-1.5">
+            <input
+              type="text"
+              value={fulltextQuery}
+              onChange={(event) => setFulltextQuery(event.target.value)}
+              placeholder="Exact phrase…"
+              className="w-full min-w-0 rounded-md border border-border bg-base px-2 py-1 text-xs text-heading placeholder-muted focus:border-gold focus:outline-none"
+            />
+            <button
+              type="submit"
+              className="shrink-0 rounded-md bg-gold-gradient px-2.5 py-1 text-xs font-medium text-base"
+            >
+              Go
+            </button>
+          </form>
         </NavGroup>
 
         <NavGroup
@@ -189,7 +213,7 @@ export default function Sidebar({
           onToggle={() => toggle("case_studies")}
         >
           <SubItem label="Landmark Judgments" onClick={onCasesSelect} />
-          <SubItem label="Case Analysis" disabled />
+          <SubItem label="Case Analysis" onClick={onCaseAnalysis} />
         </NavGroup>
       </nav>
 

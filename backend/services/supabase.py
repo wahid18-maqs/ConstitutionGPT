@@ -140,6 +140,42 @@ def create_share(share_id: str, conversation_id: str) -> dict:
 	return result.data[0] if result.data else {}
 
 
+def replace_document_chunks(rows: list[dict]) -> int:
+	"""Full resync of public.document_chunks (coming_soon.md #1's Full-Text
+	Search) -- delete-then-bulk-insert, since this table is a search index
+	rebuilt from the same processed chunk files scripts/chunk.py /
+	scripts/chunk_case_law.py already write, not a source of truth of its
+	own. Returns the number of rows inserted. Used by
+	scripts/sync_fulltext.py, never called from request-handling code."""
+	client = get_client()
+	client.table("document_chunks").delete().neq("id", 0).execute()
+	if not rows:
+		return 0
+	inserted = 0
+	batch_size = 500
+	for start in range(0, len(rows), batch_size):
+		batch = rows[start : start + batch_size]
+		result = client.table("document_chunks").insert(batch).execute()
+		inserted += len(result.data or [])
+	return inserted
+
+
+def search_fulltext(query: str, limit: int = 20) -> list[dict]:
+	"""Literal ILIKE match across public.document_chunks (coming_soon.md
+	#1) -- distinct from the semantic Pinecone search backing
+	GET /api/search. Anonymous-readable, same as /api/source (Section 8.2)."""
+	pattern = f"%{query}%"
+	result = (
+		get_client()
+		.table("document_chunks")
+		.select("source_id, label, document_type, chunk_text")
+		.ilike("chunk_text", pattern)
+		.limit(limit)
+		.execute()
+	)
+	return result.data or []
+
+
 def resolve_share(share_id: str) -> Optional[dict]:
 	"""Resolve share_id -> conversation -> messages at read time (Section 8.3:
 	don't fork message content into the share row, always reflect current

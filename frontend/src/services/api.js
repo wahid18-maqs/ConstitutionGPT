@@ -83,6 +83,18 @@ export function search(query) {
   return anonymousFetch(`/api/search?q=${encodeURIComponent(query)}`);
 }
 
+/** GET /api/search/fulltext?q=... — anonymous; literal keyword/phrase
+ * match across the whole corpus (coming_soon.md #1's Full-Text Search). */
+export function searchFulltext(query) {
+  return anonymousFetch(`/api/search/fulltext?q=${encodeURIComponent(query)}`);
+}
+
+/** GET /api/cases/analysis — anonymous; static case-significance
+ * summaries (coming_soon.md #2's Case Analysis sub-item). */
+export function getCaseAnalyses() {
+  return anonymousFetch("/api/cases/analysis");
+}
+
 /** POST /api/feedback — thumbs up/down on one assistant message. */
 export function postFeedback(messageId, feedback) {
   return authorizedFetch("/api/feedback", {

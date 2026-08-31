@@ -10,7 +10,7 @@ from fastapi import APIRouter
 
 from backend.api.routes.sources import _build_source_response
 from backend.case_law import CASE_METADATA
-from backend.models.source import ArticleGroupResponse
+from backend.models.source import ArticleGroupResponse, CaseAnalysis, CaseAnalysisListResponse
 
 router = APIRouter()
 
@@ -23,3 +23,17 @@ def list_cases():
 		if source is not None:
 			sources.append(source)
 	return ArticleGroupResponse(category="landmark_judgments", label="Landmark Judgments", sources=sources)
+
+
+@router.get("/api/cases/analysis", response_model=CaseAnalysisListResponse)
+def list_case_analyses():
+	"""Case Analysis sub-item (coming_soon.md #2) -- static, human-written
+	summaries, not raw judgment text. Only cases with an `analysis` entry
+	are returned, so an ingested-but-not-yet-summarized case is silently
+	omitted rather than shown with placeholder/missing text."""
+	analyses = [
+		CaseAnalysis(case_id=case_id, case_name=meta["case_name"], year=meta.get("year"), analysis=meta["analysis"])
+		for case_id, meta in CASE_METADATA.items()
+		if meta.get("analysis")
+	]
+	return CaseAnalysisListResponse(analyses=analyses)

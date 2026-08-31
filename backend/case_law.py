@@ -21,12 +21,33 @@ CASE_METADATA = {
 		"year": 1978,
 		"court": "Supreme Court of India",
 		"related_articles": ["21"],
+		"analysis": (
+			"Maneka Gandhi's passport was impounded without being told why or "
+			"given a hearing. The Court read Articles 14, 19, and 21 together "
+			"for the first time, holding that any procedure depriving someone "
+			"of life or personal liberty must be fair, just, and reasonable -- "
+			"not merely enacted by the legislature. This overturned the older, "
+			"narrower reading of Article 21 from A.K. Gopalan (1950) and is "
+			"the foundation for later expansions of the right to life to "
+			"include privacy, livelihood, a clean environment, and more."
+		),
 	},
 	"shreya_singhal_2015": {
 		"case_name": "Shreya Singhal v. Union of India",
 		"year": 2015,
 		"court": "Supreme Court of India",
 		"related_articles": ["19"],
+		"analysis": (
+			"Challenged Section 66A of the IT Act, which criminalized sending "
+			"'offensive' messages online in vague, undefined terms. The Court "
+			"struck the section down entirely as unconstitutional under "
+			"Article 19(1)(a) (freedom of speech and expression), holding its "
+			"vagueness had a 'chilling effect' -- people would self-censor "
+			"rather than risk prosecution under a standard nobody could "
+			"predict. A landmark early ruling on free speech in the internet "
+			"era, still the leading case cited against vague speech-restricting "
+			"statutes."
+		),
 	},
 }
 

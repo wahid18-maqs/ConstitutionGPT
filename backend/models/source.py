@@ -29,3 +29,19 @@ class ArticleGroupResponse(BaseModel):
 	category: str
 	label: str
 	sources: list[SourceResponse] = Field(default_factory=list)
+
+
+class CaseAnalysis(BaseModel):
+	"""One case's static, human-written significance/holding summary
+	(coming_soon.md #2, option 1) — distinct from the raw judgment text
+	SourceResponse carries, which /api/cases already returns."""
+
+	case_id: str
+	case_name: str
+	year: Optional[int] = None
+	analysis: str
+
+
+class CaseAnalysisListResponse(BaseModel):
+	label: str = "Case Analysis"
+	analyses: list[CaseAnalysis] = Field(default_factory=list)
